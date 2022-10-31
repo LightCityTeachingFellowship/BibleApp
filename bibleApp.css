@@ -1154,7 +1154,7 @@ span.vmultiple:hover span.vhlt {
 
 @media screen and (max-device-width: 500px) {
     #pagemaster {
-        height: calc(100vh - 80px);
+        height: calc(100vh - 75px);
     }
      :root {
         --fontsize-main: 17px;
