@@ -79,7 +79,9 @@ body {
     overflow-y: hidden;
     /* don't add color to the body, it will hide the svg */
 }
-
+body * {
+    box-sizing: border-box;
+}
 #pagemaster {
     position: fixed;
     top: 0;
@@ -1060,7 +1062,7 @@ span.vmultiple:hover span.vhlt {
 }
 
 .vhlt {
-    background-color: var(--vhlt);
+    background-color: var(--vhlt2)!important;;
     border-top: 0.25px solid var(--vhlt-border);
     border-left: 0.25px solid var(--vhlt-border);
     border-right: 0.25px solid var(--vhlt-border);
