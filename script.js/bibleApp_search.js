@@ -15,39 +15,80 @@ if (!searchresultdisplay.checked) {
     searchPreview.addEventListener("click", codeELmRefClick)
 }
 searchPreviewFixed.addEventListener("click", codeELmRefClick);
-
+let verseCount;
 function returnStrippedTextOfVerse(vTxt) {
-    let madePlain = vTxt.replace(/"\],\["/g, ' '); //strip off '],['
-    madePlain = madePlain.replace(/","/g, ' '); //strip off '","'
-    madePlain = madePlain.replace(/,/g, ' '); //strip off '","'
-    madePlain = madePlain.replace(/’/g, "'");
-    madePlain = madePlain.replace(/”/g, '"');
-    madePlain = madePlain.replace(/[{}\[\]]/g, ' '); //strip off {}[]
-    madePlain = madePlain.replace(/<i>/g, ' ');
-    madePlain = madePlain.replace(/<\/i>/g, ' ');
-    madePlain = madePlain.replace(/<r>/g, ' ');
-    madePlain = madePlain.replace(/<\/r>/g, ' ');
-    madePlain = madePlain.replace(/\s\s+/g, ' ');
-    madePlain_TH = madePlain.replace(/TH\d+/g, ''); //strip off strongs numbers
-    madePlain_TH = madePlain_TH.replace(/\s\s+/g, ' '); //strip off strongs numbers
-    madePlain_without_strongs = madePlain_TH.replace(/[HG]\d+/g, ''); //strip off strongs numbers
-    madePlain_without_strongs = madePlain_without_strongs.replace(/\s\s+/g, ' '); //strip off strongs numbers
+    let madePlain_without_strongs,arrayOfStrongs=[];
+    if(Array.isArray(vTxt)){
+        arrayOfStrongs = vTxt.map(txt=>txt[1]);
+        let arrayOfWordsWithoutStrongs = vTxt.map(txt=>txt[0]);
+        // console.log(arrayOfWordsWithoutStrongs);
+        // console.log(arrayOfStrongs);
+        madePlain_without_strongs = arrayOfWordsWithoutStrongs.filter(elm=>{if(!/^[,.?\-]$/.test(elm)){return elm}}).join(' ');
+        // if(verseCount==0){
+            // console.log(vTxt);
+            // console.log(madePlain_without_strongs);
+            // verseCount++
+        // }
+    } else {
+        vTxt = vTxt.toString()
+        let madePlain = vTxt.replace(/"\],\["/g, ' '); //strip off '],['
+        madePlain = madePlain.replace(/","/g, ' '); //strip off '","'
+        madePlain = madePlain.replace(/,/g, ' '); //strip off '","'
+        madePlain = madePlain.replace(/’/g, "'");
+        madePlain = madePlain.replace(/”/g, '"');
+        madePlain = madePlain.replace(/[{}\[\]]/g, ' '); //strip off {}[]
+        madePlain = madePlain.replace(/<i>/g, ' ');
+        madePlain = madePlain.replace(/<\/i>/g, ' ');
+        madePlain = madePlain.replace(/<r>/g, ' ');
+        madePlain = madePlain.replace(/<\/r>/g, ' ');
+        madePlain = madePlain.replace(/\s\s+/g, ' ');
+        madePlain_TH = madePlain.replace(/TH\d+/g, ''); //strip off strongs numbers
+        madePlain_TH = madePlain_TH.replace(/\s\s+/g, ' '); //strip off strongs numbers
+        madePlain_without_strongs = madePlain_TH.replace(/[HG]\d+/g, ''); //strip off strongs numbers
+        madePlain_without_strongs = madePlain_without_strongs.replace(/\s\s+/g, ' '); //strip off strongs numbers
+    }
     return {
-        withTH: madePlain_TH,
         withOutStrongs: madePlain_without_strongs,
-        withStrongs: madePlain
+        arrayOfStrongsNums:arrayOfStrongs
     }
 }
 
 function arrayOfWordsToSearchFor(w) {
-    let hasStrongs = w.replace(/.*[H|G]\d+.*/ig, 'YesItHasStrongs');
+    let caseSensitivity='';
+    if(!case_sensitive.checked){w=w.toLowerCase(); caseSensitivity='i';}
+    // let hasStrongs = w.replace(/.*[H|G|h|g]\d+.*/ig, 'YesItHasStrongs');
+    let hasStrongs = /.*[H|G|h|g]\d+.*/.test(w); //YesItHasStrongs
     w = w.replace(/[(\s\s+),.;:]/g, ' ');
     w = w.trim();
     let wArray = w.split(' ');
+    let searchStrongsNumArray = [];
+    let non_StrongsNumArray = [];
+    wArray.forEach((x)=>{
+        if(new RegExp(/\b[H|G|h|g]\d+.*/).test(x)){
+            searchStrongsNumArray.push(x)
+        } else {
+            non_StrongsNumArray.push(x)
+        }
+    })
+    function createStyleRuleForSearchedWords(){
+        let styleID = 'search_returned_words'
+        let styleRule = '';
+        searchStrongsNumArray.forEach((x,i)=>{styleRule=`${styleRule}#searchPreviewFixed [strnum*="${x}"${caseSensitivity}],`});
+        non_StrongsNumArray.forEach((x,i)=>{styleRule=`${styleRule}#searchPreviewFixed [translation*="${x}"${caseSensitivity}],`});
+        //Remove last comma in "styleRule"
+        styleRule = styleRule.substring(0, styleRule.length - 1);
+        styleRule = `${styleRule}{
+            font-style:italic;color:maroon;border-bottom: 3px solid orange!important;
+        }`
+        createNewStyleSheetandRule(styleID, styleRule)
+    }
+    createStyleRuleForSearchedWords()
     return {
         "wordsArray": wArray,
-        "hasStrongsNum": hasStrongs == 'YesItHasStrongs',
-        "moreThanOneWord": wArray.length > 1
+        "hasStrongsNum": hasStrongs,
+        "moreThanOneWord": wArray.length > 1,
+        "searchStrongsNumArray": searchStrongsNumArray,
+        "non_StrongsNumArray": non_StrongsNumArray,
     }
 }
 /* 
@@ -58,28 +99,27 @@ Search may include Strongs Number
     Search for verses with any of the words
     Search for verses that have all the words in any order
 */
+let runWordSearchCount = 0;
 function runWordSearch() {
+    verseCount=0;
     if (wordsearch.value.trim() == '' || wordsearch.value.trim().length < 2) {
         return
     }
+    runWordSearchCount++;
     let word2find, wordsearchValue;
     wordsearchValue = wordsearch.value;
     wordsearchValue=wordsearchValue.replace(/’/g, "'");
     wordsearchValue=wordsearchValue.replace(/”/g, '"');
     //If Case Sensitive Search
-    if (case_sensitive.checked) {
+    if(case_sensitive.checked) {
         word2find = new RegExp(wordsearch.value);
     } else {
         wordsearchValue = wordsearch.value.toLowerCase();
-        word2find = new RegExp(wordsearchValue, "i");
+        // word2find = new RegExp(wordsearchValue, "i");
+        word2find = wordsearchValue;
     }
     let searchResultArr = [];
-    let moreThanOneWord = false;
-
-    if (arrayOfWordsToSearchFor(wordsearchValue).length > 1) {
-        moreThanOneWord = true
-    }
-    // console.log(arrayOfWordsToSearchFor(wordsearchValue).wordsArray)
+    let moreThanOneWord = arrayOfWordsToSearchFor(wordsearchValue).moreThanOneWord
 
     function searchInPage() {
         allVersesInPage.forEach(v => {
@@ -108,12 +148,15 @@ function runWordSearch() {
         parseSingleVerse(bkid, Number(chNumInBk)+1, vNumInChpt, vText, appendHere,bookName,null, true)
     }
 
+    
     function searchJSON() {
         let prevBook = null;
         let currentBK = null;
         let findAnything = false;
-        let searchForStrongs = arrayOfWordsToSearchFor(wordsearch.value).hasStrongsNum;
-        // console.log(searchForStrongs)
+        let returnedOBJofArrayOfWordsToSearchFor = arrayOfWordsToSearchFor(wordsearch.value);
+        let searchForStrongs = returnedOBJofArrayOfWordsToSearchFor.hasStrongsNum;
+        let strongsSearchArray = returnedOBJofArrayOfWordsToSearchFor.searchStrongsNumArray;
+        // console.log(strongsSearchArray)
         
         function loopThroughBibleBooks() {
             // let booksList = bible.Data.bookNamesByLanguage.en;
@@ -138,18 +181,21 @@ function runWordSearch() {
                     let currentChapter = allChaptersInCurrentBook[y];
                     let allVersesInCurrentChapter = currentChapter;
                     let chapterVersesLength = currentChapter.length;
+                   
+                    //If there is a strongs num to be searched for, then you cannot search for a phrase. Rather search to see if verse contains all words
                     if (searchForStrongs == true) {
-                        //If there is a strongs num to be searched for, then you cannot search for a phrase. Rather search for to see if verse contains all words
-                        let wordsArray = arrayOfWordsToSearchFor(wordsearch.value).wordsArray;
+                        let wordsArray = returnedOBJofArrayOfWordsToSearchFor.wordsArray;
                         for (z = 0; z < chapterVersesLength; z++) {
                             let containsAll = true;
                             //Strip off {}[] and strongs numbers
-                            let originalText = allVersesInCurrentChapter[z].toString();
-                            let vText=originalText;
+                            let originalText = allVersesInCurrentChapter[z].toString().toLowerCase();
+                            // let vText=originalText;
                             for (let j = 0; j < wordsArray.length; j++) {
                                 // let nreg = new RegExp(wordsArray[j]);
                                 // if (!nreg.test(originalText)) {
-                                if (!originalText.includes(wordsArray[j])) {
+                                    
+                                //IT HAS TO INCLUDE ALL THE WORDS (won't work for a search that is for any of the words)
+                                if (!originalText.includes(wordsArray[j].toLowerCase())) {
                                     containsAll = false;
                                     break
                                 }
@@ -165,39 +211,50 @@ function runWordSearch() {
                                 }
                             }
                         }
-                    } else if (searchForStrongs == false) {
-                        //If there is no strongs num to be searched for, then just search for the phrase
-                        let arrayOfSearchWords = arrayOfWordsToSearchFor(wordsearchValue).wordsArray;
+                    }
+                    //If there is no strongs num to be searched for, then just search for the phrase
+                    else if (searchForStrongs == false) {
+                        let arrayOfSearchWords = returnedOBJofArrayOfWordsToSearchFor.wordsArray;
                         for (z = 0; z < chapterVersesLength; z++) {
                             let originalText = allVersesInCurrentChapter[z].toString();
-                            let vText=originalText;
-                            let madePlain = returnStrippedTextOfVerse(originalText).withOutStrongs
+                            let originalText_notString = allVersesInCurrentChapter[z];
+                            // let vText=originalText;
+                            let madePlain = returnStrippedTextOfVerse(originalText_notString).withOutStrongs
+                            // console.log(madePlain)
                             if (!case_sensitive.checked) {
                                 madePlain = madePlain.toLowerCase()
                             }
+                            
+                            /* PHRASE SEARCH && WHOLE WORD */
                             let arrayOfWordsInVerse = madePlain.split(' ');
-                            /* PHRASE SEARCH */
-                            if (search_phrase.checked) {
-                                if (((whole_word.checked) && (isAsubArrayofB(arrayOfSearchWords, arrayOfWordsInVerse))) || ((!whole_word.checked) && (madePlain.search(word2find) != -1))) {
-                                    if ((prevBook != currentBK) || (prevBook == null)) {
-                                        prevBook = currentBK;
-                                    }
-                                    currentBK = bookName;
-                                    appendVerseToSearchResultWindow(currentBK, prevBook, x, y, z+1, allVersesInCurrentChapter[z], searchFragment,bookName)
-                                    // console.log(madePlain)
-                                    findAnything = true;
+                            if (search_phrase.checked){
+                                // console.log(madePlain)
+                                // console.log(madePlain.split(' '))
+                                // console.log(arrayOfSearchWords)
+                                if(((whole_word.checked) && (isAsubArrayofB(arrayOfSearchWords, arrayOfWordsInVerse))) || 
+                                 ((!whole_word.checked) && (isAsubArrayofB(arrayOfSearchWords, madePlain.split(' '))))) {
+                                if ((prevBook != currentBK) || (prevBook == null)) {
+                                    prevBook = currentBK;
+                                }
+                                currentBK = bookName;
+                                appendVerseToSearchResultWindow(currentBK, prevBook, x, y, z+1, allVersesInCurrentChapter[z], searchFragment,bookName)
+                                // console.log(madePlain)
+                                findAnything = true;
+                            
                                 }
                             }
-                            /* ALL WORDS (NOT PHRASE) SEARCH */
+
+                            /* ALL WORDS (NOT PHRASE) SEARCH && WHOLE WORD */
                             else if (search_all_words.checked) {
-                                if (((whole_word.checked) && (areAllitemsOfAinB(arrayOfSearchWords, arrayOfWordsInVerse))) || ((!whole_word.checked) && (areAllitemsOfAinB(arrayOfSearchWords, madePlain)))) {
-                                    if ((prevBook != currentBK) || (prevBook == null)) {
-                                        prevBook = currentBK;
-                                    }
-                                    currentBK = bookName;
-                                    appendVerseToSearchResultWindow(currentBK, prevBook, x, y, z+1, allVersesInCurrentChapter[z], searchFragment,bookName)
-                                    // console.log(madePlain)
-                                    findAnything = true;
+                                if (((whole_word.checked) && (areAllitemsOfAinB(arrayOfSearchWords, arrayOfWordsInVerse))) ||
+                                    ((!whole_word.checked) && (areAllitemsOfAinB(arrayOfSearchWords, madePlain)))) {
+                                if ((prevBook != currentBK) || (prevBook == null)) {
+                                    prevBook = currentBK;
+                                }
+                                currentBK = bookName;
+                                appendVerseToSearchResultWindow(currentBK, prevBook, x, y, z+1, allVersesInCurrentChapter[z], searchFragment,bookName)
+                                // console.log(madePlain)
+                                findAnything = true;
                                 }
                             }
                         }
