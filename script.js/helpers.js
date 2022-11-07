@@ -53,11 +53,11 @@ function removeCharacterFromString(xh, str) {
 /* ***************************** */
 
 function elmAhasElmOfClassBasAncestor(a, ancestorsClass, limit = 'BODY') {
-    while (a.parentNode && a.parentNode.tagName.toUpperCase() != limit) {
-        if (a.parentNode.classList.contains(ancestorsClass) || a.parentNode.matches(ancestorsClass)) {
+    while (a.parentElement && a.parentElement.tagName.toUpperCase() != limit) {
+        if (a.parentElement.classList.contains(ancestorsClass) || a.parentElement.matches(ancestorsClass)) {
             return a.parentNode
         }
-        a = a.parentNode;
+        a = a.parentElement;
     }
     return false
     
@@ -154,6 +154,12 @@ function relocateElmTo(elm, moveHere) {
     moveHere.append(elmCopy)
 }
 
+// GET FIRST SHADOW COLOR
+function getBoxShadowColor(elm){
+    // Even if element has more than one box-shadow color, it will only get the first one
+    let boxShadowOfElem = window.getComputedStyle(elm, null).getPropertyValue("box-shadow");
+    return boxShadowOfElem.split('px')[0].replace(/^.*(rgba?\([^)]+\)).*/,'$1')
+}
 
 /* ****************************** */
 /*        DOM EXPLORATIONS        */
@@ -427,3 +433,50 @@ function areAllitemsOfAinB(a, b) {
         return false
     }
 }
+
+
+/* WATCH FOR INACTIVITY IN ELM AND RUN FUNCTION AFTER SET-TIME */
+// https://www.brcline.com/blog/detecting-inactivity-in-javascript
+function runFuncAfterSetTimeInactivityInElm(elm2Watch, timeoutInMiliseconds = 60000, func2run){
+    var timeoutId;
+
+    function resetTimer() { 
+        window.clearTimeout(timeoutId)
+        startTimer();
+    }
+      
+    function startTimer() {
+        // window.setTimeout returns an Id that can be used to start and stop a timer
+        timeoutId = window.setTimeout(doInactive, timeoutInMiliseconds)
+    }
+      
+    function doInactive() {
+        // Clear the eventListeners
+        elm2Watch.removeEventListener("mousemove", resetTimer, false);
+        elm2Watch.removeEventListener("mousedown", resetTimer, false);
+        elm2Watch.removeEventListener("keypress", resetTimer, false);
+        elm2Watch.removeEventListener("touchmove", resetTimer, false);
+        // if(searchsettings.classList.contains('active_button')){searchsettings.click()}
+        // totalfound.innerHTML='Search Cleared';
+        func2run()
+    }
+     
+    // function setupTimers () {
+        elm2Watch.addEventListener("mousemove", resetTimer, false);
+        elm2Watch.addEventListener("mousedown", resetTimer, false);
+        elm2Watch.addEventListener("keypress", resetTimer, false);
+        elm2Watch.addEventListener("touchmove", resetTimer, false);
+         
+        startTimer();
+    // }
+}
+
+/* CHECK IF DEVICE IS A MOBILE DEVICE */
+// window.addEventListener("load", () => {
+//     // (A) CHECK FOR MOBILE
+//     isMobile = navigator.userAgent.toLowerCase().match(/mobile/i);
+   
+//     // (B) DO SOMETHING...
+//     if (isMobile) { console.log("Is mobile device"); }
+//     else { console.log("Not mobile device"); }
+//   });
