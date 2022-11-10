@@ -961,7 +961,6 @@ span.vmultiple.noted code #verse_notes_button {
 [class^=v_].vhlt{
     background-color: var(--vhlt2);
 }
-
 #mobilebuttons {
     display: none;
 }
@@ -986,16 +985,55 @@ span.vmultiple.noted code #verse_notes_button {
     #refdiv input, #searchdiv input {
         flex-grow: 1;
     }
-    #togglenavbtn{
-        width: 120px !important;
+    #togglenavbtn {
+        width: 115px !important;
+        min-width: 52px;
+    }
+    #forreference,
+    #forwordsearch,
+    #titlebar_show_searchsettings {
+        display: flex;
+        padding: 5px;
+    }
+}
+@media screen and (max-device-width: 400px) {
+     :root {
+        --fontsize-title: 16px;
+    }
+    #forreference,
+    #forwordsearch,
+    #titlebar_show_searchsettings {
+        display: flex;
+        min-width: 40px;
+        padding: 3px;
     }
 }
 @media screen and (max-device-width: 300px) {
-    #ref_search_versions_holder #refdiv, #ref_search_versions_holder #searchdiv {
+    #togglenavbtn {
+        width: 110px !important;
+        min-width: 42px;
+    }
+    #ref_search_versions_holder #refdiv,
+    #ref_search_versions_holder #searchdiv {
         display: flex;
         width: 100%;
     }
-    #refdiv input, #searchdiv input {
+    #refdiv input,
+    #searchdiv input {
         flex-grow: 1;
+    }
+    #forreference,
+    #forwordsearch,
+    #titlebar_show_searchsettings {
+        min-width: 30px;
+    }
+     :root {
+        --fontsize-title: 14px;
+        --width-mainbutton: 35px;
+        --width-sidebuttons: 27px;
+    }
+    #refnav #app_settings>button {
+        font-size: 22.5px;
+        width: 40px!important;
     }
 }
