@@ -965,6 +965,9 @@ span.vmultiple.noted code #verse_notes_button {
     display: none;
 }
 @media screen and (max-device-width: 500px) {
+    #pagemaster {
+        height: calc(100vh - 57px);
+    }
     :root {
         --fontsize-main: 17px;
         --fontsize-scripture: 17px;
