@@ -13,18 +13,17 @@ function add_tooltipContextMenu(e) {
         main.prepend(context_menu_replacement);
         context_menu.addEventListener("click", codeELmRefClick);
     }
-    rightClickedElm = e.target;
-    firstShadowColorOfElem=getBoxShadowColor(rightClickedElm)
+    if(e.target.getAttribute('strnum')&&!e.target.matches('.context_menu')){
+        rightClickedElm = e.target;
+        firstShadowColorOfElem=getBoxShadowColor(rightClickedElm)
+    }
+    
     // FOR SHOWING AND HIDING THE RIGHTCLICK MENU
     var menusX = e.x;
-    if (e.target.matches('.translated, .strnum, .crossrefs>span') /* && (!e.target.matches('#context_menu')&&!elmAhasElmOfClassBasAncestor(e.target,'#context_menu')) */ ) {
+    if (e.target.matches('.translated, .strnum, .crossrefs>span, .verse_note span') /* && (!e.target.matches('#context_menu')&&!elmAhasElmOfClassBasAncestor(e.target,'#context_menu')) */ ) {
         getCurrentStrongsDef(e);
         clearTimeout(timer1);
         clearTimeout(timer2);
-
-        // console.log(context_menu.getAttribute('strnum'))
-        // console.log(e.target)
-
         if (e.type == 'mouseover') {
             clearTimeout(timer1);
 
@@ -53,22 +52,34 @@ function add_tooltipContextMenu(e) {
             let addquotes = true;
             let eParent;
             // console.clear()
-            // console.log(elmAhasElmOfClassBasAncestor(e.target, '#searchPreviewFixed'))
-            if (elmAhasElmOfClassBasAncestor(e.target, '#main')) {
+            // console.log(elmAhasElmOfClassBasAncestor(e.target, '.verse_note'))
+            // Append to verseNote
+            if (elmAhasElmOfClassBasAncestor(e.target, '.verse_note')) {
+                eParent = elmAhasElmOfClassBasAncestor(e.target, '.verse_note').querySelector('.text_content');
+                if (!eParent.querySelector('#context_menu')) {
+                    //move the #context_menu from #main to #searchPreviewFixed
+                    let clonedContextMenu = main.querySelector('#context_menu').cloneNode(true);
+                    main.querySelector('#context_menu').remove()
+                    eParent.append(clonedContextMenu)
+                    clonedContextMenu.addEventListener("click", codeELmRefClick)
+                }
+            }
+            // Append to verse
+            else if (elmAhasElmOfClassBasAncestor(e.target, '#main')) {
                 eParent = document.querySelector('#main');
                 if (eParent.offsetLeft != 0) {
                     extraLeft = eParent.offsetLeft;
                 }
                 //if the #context_menu is not in #main, then it must be in #searchPreviewFixed
-                if (!eParent.querySelector('#context_menu')) {
+                if (!eParent.querySelector('#context_menu')||main.querySelector('.verse_note #context_menu')) {
                     //move the #context_menu from #searchPreviewFixed to #main
-                    let clonedContextMenu = searchPreviewFixed.querySelector('#context_menu').cloneNode(true);
-                    searchPreviewFixed.querySelector('#context_menu').remove()
+                    let clonedContextMenu = document.querySelector('#context_menu').cloneNode(true);
+                    document.querySelector('#context_menu').remove()
                     main.append(clonedContextMenu)
                 }
             }
                 //if the #context_menu is not in #searchPreviewFixed, then it must be in #main 
-                else if (elmAhasElmOfClassBasAncestor(e.target, '#searchPreviewFixed')) {
+            else if (elmAhasElmOfClassBasAncestor(e.target, '#searchPreviewFixed')) {
                 eParent = document.querySelector('#searchPreviewFixed');
                 if (!eParent.querySelector('#context_menu')) {
                     //move the #context_menu from #main to #searchPreviewFixed
@@ -94,25 +105,35 @@ function add_tooltipContextMenu(e) {
                     originalWord = e.target.parentElement.getAttribute("translation")
                 }
                 let menu_inner;
-                if (addquotes) {
-                    menu_inner = `${e.target.getAttribute('data-title')}<hr>“${originalWord.trim()}”`;
-                } else {
-                    menu_inner = `${e.target.getAttribute('data-title')}<hr>${originalWord.trim()}`;
+                if(originalWord){
+                    if (addquotes) {
+                        menu_inner = `${e.target.getAttribute('data-title')}<hr>“${originalWord.trim()}”`;
+                    } else {
+                        menu_inner = `${e.target.getAttribute('data-title')}<hr>${originalWord.trim()}`;
+                    }
+                    context_menu.innerHTML = menu_inner + '<hr>' + newStrongsDef;
+                } else if (e.type=='contextmenu'){// For strongs number in verseNote
+                    context_menu.innerHTML = newStrongsDef;
+                    // context_menu.querySelector('hr').remove();
+                    let h2relocate = context_menu.querySelector('h2');
+                    let h2clone = h2relocate.cloneNode(true);
+                    h2relocate.remove();
+                    context_menu.querySelector('.strngsdefinition').prepend(h2clone)
                 }
-                context_menu.innerHTML = menu_inner + newStrongsDef;
                 // context_menu.removeAttribute('style');
                 context_menu.style.height = null;
                 context_menu.style.left = null;
-                context_menu.setAttribute('strnum', e.target.getAttribute('strnum'))
+                if (strnum = e.target.getAttribute('strnum')) {
+                    context_menu.setAttribute('strnum', strnum)
+                }else{context_menu.removeAttribute('strnum')}
                 hideRefNav('show', context_menu)
             } else /* if (e.type == 'contextmenu' || e.type == 'mouseover')  */ {
                 context_menu.innerText = null;
-                if (e.target.matches('.crossrefs>span')) {
+                if (e.target.matches('.crossrefs>span, .verse_note span')) {
                     let cmtitlebar = document.createElement('div');
                     cmtitlebar.classList.add('cmtitlebar');
                     let cmtitletext = e.target.innerText;
-                    let bknch = cmtitletext.split('.')[0] + '.' + cmtitletext.split('.')[1];
-                    cmtitletext = bknch.split('.').join(' ') + ':' + cmtitletext.split(bknch + '.').join('') + ' [' + bversionName + ']';
+                    cmtitletext = cmtitletext + ' [' + bversionName + ']';
                     // cmtitlebar.innerText=e.target.innerText;
                     cmtitlebar.innerText = cmtitletext;
                     context_menu.append(cmtitlebar);
@@ -121,7 +142,9 @@ function add_tooltipContextMenu(e) {
                 // context_menu.removeAttribute('style');
                 context_menu.style.height = null;
                 context_menu.style.left = null;
-                context_menu.setAttribute('strnum', e.target.getAttribute('strnum'))
+                if (strnum = e.target.getAttribute('strnum')) {
+                    context_menu.setAttribute('strnum', strnum)
+                }else{context_menu.removeAttribute('strnum')}
                 hideRefNav('show', context_menu)
             }
             /* POSITION MENU */
@@ -162,20 +185,13 @@ function add_tooltipContextMenu(e) {
                 }
             }
         }
-    } else if (context_menu.matches('.slidein') && (!e.target.matches('#context_menu') || !elmAhasElmOfClassBasAncestor(e.target, '.context_menu'))) {
-
+    } else if (context_menu.matches('.slidein') && !(e.target.matches('#context_menu') || elmAhasElmOfClassBasAncestor(e.target, '.context_menu'))) {
         function removeContextMenu() {
             hideRefNav('hide', context_menu, removeCMPevtListner());
             context_menu.removeAttribute('strnum');
             context_menu.innerHTML = '';
         }
-        // if (e.type == 'mouseover') {
-        // timer2 = setTimeout(function () {
-            removeContextMenu();
-        // }, 10)
-        // } else {
-        // removeContextMenu()
-        // }
+        removeContextMenu();
     }
 }
 let newStrongsDef = '';
@@ -187,10 +203,10 @@ function getCurrentStrongsDef(e) {
         // console.log(strnum)
     }
     if (e.type == 'contextmenu') {
-        context_menu.classList.add('rightclicked')
-        context_menu.removeAttribute('strnum')
-        context_menu.setAttribute('strnum', strnum)
-        newStrongsDef = '<hr>' + currentStrongsDef;
+        context_menu.classList.add('rightclicked');
+        context_menu.removeAttribute('strnum');
+        if(strnum){context_menu.setAttribute('strnum', strnum);}
+        newStrongsDef = currentStrongsDef;
         toolTipOnOff(false);
     } else if (e.type != 'contextmenu') {
         newStrongsDef = '';
@@ -204,7 +220,7 @@ searchPreviewFixed.addEventListener('contextmenu', add_tooltipContextMenu, false
 searchPreviewFixed.addEventListener('mousedown', add_tooltipContextMenu_preventDoublick, false);
 
 ppp.addEventListener('mouseout', function (e) {
-    if (e.target.matches('.translated, .strnum, .crossrefs>span')) {
+    if (e.target.matches('.translated, .strnum, .crossrefs>span, .verse_note span')) {
         clearTimeout(timer1)
     }
 });
@@ -237,7 +253,7 @@ tool_tip.addEventListener('click', () => {
 
 let toolTipON = ttip_check.checked; //Is modified by escape or alt + t
 document.addEventListener('keydown', evt => {
-    if (evt.key === 'y' && evt.altKey) {
+    if ((evt.key === 'y'||evt.key === 'Y') && evt.altKey) {
         toolTipOnOff();
         toolTipON = ttip_check.checked;
     }

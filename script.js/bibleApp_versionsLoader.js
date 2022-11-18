@@ -21,6 +21,8 @@ window.onload = function () {
 let availableVersions = {
     // 'original': {name: 'Original', language: 'original'},
     'accented': {name: 'Accented original',language: 'original'},
+	'ABP-en': { name: 'Apostolic Bible Polyglot-en', language: 'en' },
+	'ABP-gr': { name: 'Apostolic Bible Polyglot-gr', language: 'gr' },
     'KJV': {name: 'King James Version',language: 'en'},
     'WEB': {name: 'World English Bible',language: 'en'},
     'ESV': {name: 'English Standard Version',language: 'en'},
@@ -54,7 +56,7 @@ for (key in availableVersions) {
     bible_versions.innerHTML = bible_versions.innerHTML + `<div><input type="checkbox" id="${key}_version" name="${key}_version" value="${key}"><label for="${key}_version" abreviation="${key}" title="${availableVersions[key].name}">${key}</label></div>`;
 }
 bible_versions.addEventListener('change', function (e) {
-    console.log(e.target)
+    // console.log(e.target)
     if ((e.target.checked) && (e.target.parentElement.parentElement.matches('#bible_versions'))) {
         loadVersion(e.target.getAttribute('value'));
         localStorage.setItem('loadedBibleVersions', loadedBibleVersions);
@@ -225,10 +227,16 @@ const add_VersionsLoader_preventDoublick = debounce(local_versionsloader, 300);
 //The actual function that adds the local versions loader to the window
 function local_versionsloader(e) {
     let clkelm = e.target;
+    if (clkelm.matches('#singleverse_compare_menu')) {
+        clkelm.remove();
+        main.removeEventListener('click', local_versionsloader)
+        return
+    }
     /* ATTACH VERSE VERSION COMPARE BUTTONS */
     if (clkelm.matches('.verse,.vmultiple')) {
         if (clkelm.querySelector('#singleverse_compare_menu')) {
             clkelm.querySelector('#singleverse_compare_menu').remove();
+            main.removeEventListener('click', local_versionsloader)
             return
         }
         clickedVerseRef = clkelm.querySelector('[ref]').getAttribute('ref');
@@ -267,17 +275,21 @@ function local_versionsloader(e) {
             }
         }
         clkelm.append(sverse_comp)
+        main.addEventListener('click', local_versionsloader)
         sverse_comp.classList.remove('slideout')
         // sverse_comp.classList.add('slidein')
     }
 }
 
-main.addEventListener('click', addLocalVersionsLoaderButtons)
+// main.addEventListener('click', addLocalVersionsLoaderButtons)
+main.addEventListener('contextmenu', addLocalVersionsLoaderButtons)
 
 function addLocalVersionsLoaderButtons(e) {
-    //IF there is 'context_menu', then the first click should remove it. Therefore, the local versions loader should not be loaded if there is context menu in the window.
+    // The local versions loader should not be loaded if there is context menu in the window.
+    // IF there is 'context_menu', then the first click should remove it.
     if (main.querySelector('#context_menu.slidein') == null) {
-        add_VersionsLoader_preventDoublick(e)
+        // add_VersionsLoader_preventDoublick(e) // this works with click eventListener
+        local_versionsloader(e) // this works with contextmenu eventListener
     }
 }
 //Get and append (or un-append) reference on click of comparison version button
