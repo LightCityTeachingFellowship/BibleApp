@@ -1,3 +1,7 @@
+let bible_nav = document.querySelector('#bible_nav');
+let refnav = document.querySelector('#refnav');
+
+function clog(x){console.log(x)}
 /* GENERAL HELPER FUNCTIONS */
 function isObject(objValue) {
     return objValue && typeof objValue === 'object' && objValue.constructor === Object;
@@ -324,9 +328,40 @@ function windowsSelection(){
 function codeELmRefClick(e) {
     if (e.target.tagName == "CODE") {
         let codeElm = e.target;
-        // console.log(codeElm.getAttribute('ref'))
-        gotoRef(codeElm.getAttribute('ref'))
+        
+        // If it is the verseNotePage and not the index.html.
+        if(document.querySelector('body').matches('#versenotepage')){
+            
+            let col2 = document.querySelector('#col2');
+            col2.innerHTML = `<div id="context_menu" class="context_menu slideout"></div><details open><summary><div class='openCloseIconHolder'></div><h1 class="win2_bcv_ref">${codeElm.getAttribute('ref')}</h1></summary><div class="win2_noteholder"><em>loading...</em></div></details>`;
+            
+            win2_noteholder = col2.querySelector('.win2_noteholder')
+
+            let refDetails = refDetails4rmCodeElm(codeElm);
+            // clog({bN, bC, cV,win2_noteholder})
+            bN = refDetails.bookName;
+            bC = refDetails.bookChapter;
+            cV = refDetails.chapterVerse;
+            bookName = bN;
+            chapternumber = bC;
+            verseNumber = cV;
+            readFromVerseNotesFiles(bN, bC, cV,win2_noteholder)
+        }
+        else{
+            gotoRef(codeElm.getAttribute('ref'))
+        }
         e.preventDefault();
+    }
+}
+function refDetails4rmCodeElm(codeElm){
+    let bC=codeElm.getAttribute('chpt').trim();
+    let bkNvrs=codeElm.getAttribute('ref').split(' ' + bC + ':');
+    let bN=bkNvrs[0].trim();
+    let cV=bkNvrs[1].trim();
+    return {
+        bookName:bN,
+        bookChapter:bC,
+        chapterVerse:cV
     }
 }
 // function getFUllBookName(shortBkNm) {
@@ -492,15 +527,94 @@ function runFuncAfterSetTimeInactivityInElm(elm2Watch, timeoutInMiliseconds = 60
 function modifyQuotationMarks(txt){
     txt = txt.replace(/&nbsp;/ig, ' ');
     // Modify Opening Quotation Marks
+    txt = txt.replace(/(?<!<[^>]*)(.)\.\.\./ig, '$1…');
+    txt = txt.replace(/”…/ig, '“…');
     txt = txt.replace(/(?<!<[^>]*)([\d\w])['‘]([\w…])/ig, '$1’$2');
     txt = txt.replace(/(?<!<[^>]*)(^|[\b\s‘])"/ig, '$1“');
     txt = txt.replace(/(?<!<[^>]*)"([\d\w…‘])/ig, '“$1');
     txt = txt.replace(/(?<!<[^>]*)"([\s.,’])/ig, '”$1');
     txt = txt.replace(/(?<!<[^>]*)([\w\d.,…’])"/ig, '$1”');
     // Modify Closing Quotation Marks 
+    txt = txt.replace(/!"/g, '!”');
     txt = txt.replace(/(?<!<[^>]*)(^|[\b\s“])'/ig, '$1‘');
     txt = txt.replace(/(?<!<[^>]*)'([\d\w…“])/ig, '‘$1');
     txt = txt.replace(/(?<!<[^>]*)'([\s.,”])/ig, '’$1');
     txt = txt.replace(/(?<!<[^>]*)([\w\d.,…”])'/ig, '$1’');
+    txt = txt.replace(/--/g, '—');
+    // Remove <br> that comes before block element closing tag
+    txt = txt.replace(/<br>(<\/(p|h\d)>)/ig, '$1');
+    txt = txt.replace(/(?<!<[^>]*)(\s+([.,]))/ig, '$2');
+    txt = txt.replace(/<span contenteditable="false" data-cke-magic-line="\d+" style="height: \d+px; padding: \d+px; margin: \d+px; display: block; z-index: \d+; color: rgb(\d+, \d+, \d+); font-size: \d+px; line-height: 0px; position: absolute; border-top: \d+px dashed rgb(\d+, \d+, \d+); user-select: none; left: \d+px; right: \d+px; top: \d+px;">  \s*↵\s*<\/span>/ig, '');
     return txt
 }
+
+/* FOR CHECKING IF TRANSLATION HAS ANY ISSUE AND WHERE THE ISSUES ARE */
+function findMissingIncompleteChapters(translation){
+    let reportOBJ={};
+    let inCompleteChapters={};
+    // Loop through all bible books
+    bible.Data.allBooks.forEach((bibleBook,bbkIndx) => {
+        let bkchptVdata = bible.Data.verses[bbkIndx];
+        let numOfChptsInBk = window[translation][bibleBook].length;
+        let expectedNumOfChptsInBk = bkchptVdata.length;
+        inCompleteChapters[bbkIndx+'_'+bibleBook]={};
+
+        // Incomplete books
+        if(numOfChptsInBk!=expectedNumOfChptsInBk){
+            console.log('?Bk?: ' + bibleBook + ':' + numOfChptsInBk +' :insteadOf: ' + expectedNumOfChptsInBk)
+        }
+
+        // Complete Books
+        // if book has complete number of chapters, check each chapter to see it has complete number of verses
+        // window[translation][bibleBook][chNumInBk - 1][vNumInChpt - 1]
+        window[translation][bibleBook].forEach((chapt,chpIndx)=>{
+            let numOfVrsInChpt = chapt.length;
+            let expectedNumOfVrsInChpt = bkchptVdata[chpIndx];
+            if(numOfVrsInChpt!=expectedNumOfVrsInChpt){
+                inCompleteChapters[bbkIndx+'_'+bibleBook][chpIndx+1]=numOfVrsInChpt + ' :vs: ' + expectedNumOfVrsInChpt
+                reportOBJ[bbkIndx+'_'+bibleBook]=inCompleteChapters[bbkIndx+'_'+bibleBook];
+            }
+        })
+    });
+    if(Object.keys(reportOBJ).length === 0){
+        return "No Issue With Translation: Correct Number of Chapters in Books and Correct Number of Verses in Chpaters"
+    }else{
+        return reportOBJ
+    }
+}
+
+/* Check If element is in view on page */
+function isScrolledIntoView(el) {
+    var rect = el.getBoundingClientRect();
+    var elemTop = rect.top;
+    var elemBottom = rect.bottom;
+
+    // Only completely visible elements return true:
+    var isVisible = (elemTop >= 0) && (elemBottom <= window.innerHeight);
+    // Partially visible elements return true:
+    //isVisible = elemTop < window.innerHeight && elemBottom >= 0;
+    return isVisible;
+}
+/* ***************************************************** */
+/* DOWNLOAD MODIFIED JSON FILE */
+/* function downloadFile(text_data, name = "myData", format = "json") {
+  // const blob = new Blob([JSON.stringify(obj, null, 2)], {
+  //     type: "application/json",
+  //   });
+  console.log(name)
+  const blob = new Blob([text_data], {
+      type: "application/octet-stream",
+  });
+  const href = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), {
+      href,
+      styles: "display:none",
+      download: `${name}.${format}` // myData.json
+  })
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(href);
+  a.remove(a);
+} */
+/* https://www.youtube.com/watch?v=io2blfAlO6E */
+/* ***************************************************** */

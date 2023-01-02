@@ -13,9 +13,9 @@ function getAllRulesInStyleSheet(styleSheet) {
 }
 //STYLE SHEET MODIFIER
 function findCSSRule(mySheet, selector) {
+    mySheet=mySheet.sheet;
     let ruleIndex = -1; // Default to 'not found'
     let theRules = mySheet.cssRules ? mySheet.cssRules : mySheet.rules;
-    // console.log(theRules.length)
     for (i = 0; i < theRules.length; i++) {
         if (theRules[i].selectorText == selector) {
             ruleIndex = i;
@@ -47,13 +47,19 @@ function addRemoveRuleFromStyleSheet(CS_rule, ruleSelector, targetStyleSheet) {
     let highlightStrongsSheet = targetStyleSheet.sheet;
     let allRules = highlightStrongsSheet.cssRules;
     for (let i = 0; i < allRules.length; i++) {
-        if (findCSSRule(highlightStrongsSheet, ruleSelector) == -1) {
-            highlightstrongs.sheet.insertRule(CS_rule, allRules.length - 1);
-        } else {
-            highlightStrongsSheet.deleteRule(findCSSRule(highlightStrongsSheet, ruleSelector));
+        //Add rule if it doesn't exist
+        if (findCSSRule(targetStyleSheet, ruleSelector) == -1) {
+            targetStyleSheet.sheet.insertRule(CS_rule, allRules.length - 1);
+            // console.log('RULE ADDED')
+        }
+        //Remove rule if it already exists
+        else {
+            highlightStrongsSheet.deleteRule(findCSSRule(targetStyleSheet, ruleSelector));
+            //Remove stylesheet if there are no more rules in it
             if (allRules.length == 0) {
                 targetStyleSheet.remove()
             }
+            // console.log('RULE REMOVED')
         }
         break
     }
@@ -91,6 +97,10 @@ function changeFontSize(targetgroup, plusMinus) {
         targ = '--fontsize-scripture-nav';
         currentSize = rootStyles.getPropertyValue('--fontsize-scripture-nav');
     }
+    if (targetgroup == 'refnsrch') {
+        targ = '--fontsize-refnsearch';
+        currentSize = rootStyles.getPropertyValue('--fontsize-refnsearch');
+    }
     currentSize = Number(currentSize.split('px')[0].trim())
     if (plusMinus == 'plus') {
         currentSize = (currentSize + 2) + 'px'
@@ -113,6 +123,7 @@ function styleLocalstorageSet() {
         ["--fontsize-strongstooltip", rootStyles.getPropertyValue('--fontsize-strongstooltip')],
         ["--fontsize-scripture-nav", rootStyles.getPropertyValue('--fontsize-scripture-nav')],
         ["--main-font", rootStyles.getPropertyValue('--main-font')],
+        ["--fontsize-refnsearch", rootStyles.getPropertyValue('--fontsize-refnsearch')],
         ["--fontsize-main", rootStyles.getPropertyValue('--fontsize-main')]
     ]
     setItemInLocalStorage('styles_variables', variableArray);
@@ -123,22 +134,26 @@ let lcol = rootStyles.getPropertyValue('--verse-hover');
 function darkLightMode() {
     let dark_mode = 'darkmode';
     let darkmodeCSS = `
-    span.verse{background:black; color:white!important;}
+    /* span.verse{background:rgb(19, 17, 17); color:white!important;} */
+    html {background:rgb(0, 0, 6); color:white!important;}
     span.verse span, .verse_note span[ref] {color:white;}
     span.verse:hover, span.vmultiple:hover {background: rgb(18, 18, 18);}
     input{background:rgb(18, 18, 18)!important; color:whitesmoke;}
     button.active_button{color:black!important;}
     .buttons {background:rgb(18, 18, 18)}
-    button {background:rgb(115,115,90);}
+    button {background:var(--grey);}
     #refnav #app_settings {border-right: 1px solid var(--grey); background:rgb(18, 18, 18)}
     #bible_versions, #searchPreviewWindowFixed, #strongsdefinitionwindow, #bibleapp_cache {background-color: rgb(18, 18, 18);color:whitesmoke}
     #searchparameters div:first-of-type+div, #bibleapp_cache div:first-of-type, #bibleapp_cache .settingssectionheadings {background:none;}
     #bible_nav {font-size: var(--fontsize-scripture-nav)!important; background:black; color: whitesmoke;}
     #bible_nav option:hover, #searchPreviewFixed>.chptheading, .bible_versions_heading {color: black;}
+    #ppp .chptheading {background:none}
     #searchparameters, .verse_note {background: rgb(5,10,15); color:white}
     #main button {background:whitesmoke}
     #bibleapp_cache *:not(.settingssectionheadings) {font-size: var(--fontsize-main);background: black; color: whitesmoke;}
-    `
+    #strongsdefinitionwindow details, details{background:rgb(0, 0, 6)!important}
+    #strongsdefinitionwindow summary>div:first-of-type,#context_menu summary>div:first-of-type{background-color: darkolivegreen!important;}
+    #context_menu{background:rgb(19, 17, 17)!important; color:white!important;}`
     let dcol = 'transparent';
     if (document.getElementsByTagName('head')[0].querySelector('#darkmode')) {
         darkmode.remove();
@@ -150,6 +165,8 @@ function darkLightMode() {
         documentROOT.style.setProperty('--ref-img', 'url(images/background.jpg)');
         documentROOT.style.setProperty('--selection', 'rgba(0, 0, 255, 0.1)');
         documentROOT.style.setProperty('--vhlt2', '#ffff99');
+        documentROOT.style.setProperty('--black', 'black');
+        documentROOT.style.setProperty('--searchedword-hlt', 'maroon');
     } else {
         createNewStyleSheetandRule(dark_mode, darkmodeCSS);
         darkmodebtn.innerText = 'D';
@@ -159,6 +176,8 @@ function darkLightMode() {
         documentROOT.style.setProperty('--vhlt2', 'rgb(0, 39, 39)');
         documentROOT.style.setProperty('--ref-img', 'rgb(38, 38, 38)');
         documentROOT.style.setProperty('--selection', 'rgba(0, 255, 0, 0.6)');
+        documentROOT.style.setProperty('--black', 'white');
+        documentROOT.style.setProperty('--searchedword-hlt', 'orange');
     }
 }
 

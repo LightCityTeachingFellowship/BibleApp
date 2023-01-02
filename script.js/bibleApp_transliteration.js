@@ -56,26 +56,50 @@ function createTransliterationAttr(x, l) {
 let currentStrongsDef = null;
 
 function getsStrongsDefinition(x) {
-    strongsdefinitionwindow.innerHTML = '';
-    let _text = '';
-    x.forEach(wStrnum => {
-        for (abc = 0; abc < strongsJSONresponse.length; abc++) {
-            if (strongsJSONresponse[abc].number == wStrnum) {
-                let str_xlit = strongsJSONresponse[abc].xlit;
-                let str_lemma = strongsJSONresponse[abc].lemma;
-                let str_definition = strongsJSONresponse[abc].description;
-                _text = _text + `<div class="strngsdefinition"><hr><h2>${wStrnum}</h2>
-                <div><i>Lemma</i>: <h2>${str_lemma}</h2></div>
-                <div><i>Transliteration</i>: <h2>${str_xlit}</h2></div>
-                <div><h2><hr>Definition:</h2></div><hr> ${str_definition}<hr>
-                </div>
-                `
-                strongsdefinitionwindow.innerHTML = _text;
-                currentStrongsDef = _text;
-                break
-            }
-        }
+    _text = '';
+    let openOrclose='';
+    x.forEach((wStrnum,i) => {
+        if(i!=0){openOrclose=''}// only the first detail element will be open
+        let xlit_lemma_definition=getsStrongsLemmanNxLit(wStrnum);
+        let str_xlit = xlit_lemma_definition.xlit;
+        let str_lemma = xlit_lemma_definition.lemma;
+        let str_definition = xlit_lemma_definition.definition;
+        _text = `${_text}
+        <details class="strngsdefinition" ${openOrclose}>
+        <summary>
+            <div class='openCloseIconHolder'></div>
+            <div>
+                <h2>${wStrnum}</h2><br>
+                <i>Lemma</i>: <h2>${str_lemma}</h2><br>
+                <i title='transliteration'>Translit</i>: <h2>${str_xlit}</h2>
+            </div>
+        </summary>
+            <p>${str_definition}</p>
+        </details>`;
     });
+    currentStrongsDef = _text;
+    if(!document.querySelector('body').matches('#versenotepage')){
+        strongsdefinitionwindow.innerHTML = '';
+        strongsdefinitionwindow.innerHTML = _text;
+    }
+    return _text
+}
+
+function getsStrongsLemmanNxLit(wStrnum) {
+    let str_xlit, str_lemma, str_definition;
+    for (abc = 0; abc < strongsJSONresponse.length; abc++) {
+        if (strongsJSONresponse[abc].number == wStrnum) {
+            str_xlit = strongsJSONresponse[abc].xlit;
+            str_lemma = strongsJSONresponse[abc].lemma;
+            str_definition = strongsJSONresponse[abc].description;
+            abc = strongsJSONresponse.length//to end the forloop
+        }
+    }
+    return {
+        xlit: str_xlit,
+        lemma: str_lemma,
+        definition: str_definition
+    }
 }
 
 //TO SHOW TRANSLITERATION OF WORDS
@@ -84,7 +108,8 @@ var transliteratedWords_Array = [];
 function showTransliteration(stn) {
     let allSimilarWords;
     if(/G|H\d+/i.test(stn)&&stn!=='G*'){
-        allSimilarWords = pagemaster.querySelectorAll('.' + stn);
+        allSimilarWords = pagemaster.querySelectorAll('.' + stn + ':not(.vnotestrnum)');
+        // ':not(.vnotestrnum)' so as to exempt strnums in verseNotes
     } else {return}
     // allSimilarWords = pagemaster.querySelectorAll('.' + stn);
     // let allSimilarWords = document.getElementsByClassName(stn);
@@ -131,7 +156,8 @@ function showTransliteration(stn) {
 }
 
 function hideTransliteration(stn) {
-    let allSimilarWords = pagemaster.querySelectorAll('.' + stn);
+    let allSimilarWords = pagemaster.querySelectorAll('.' + stn + ':not(.vnotestrnum)');
+    // ':not(.vnotestrnum)' so as to exempt strnums in verseNotes
     allSimilarWords.forEach(elm => {
         elm.classList.remove('eng2grk');
         elm.innerHTML = '';
@@ -140,16 +166,34 @@ function hideTransliteration(stn) {
 }
 
 function highlightAllStrongs(x) {
-    cs = `span[strnum="${x}"]{background-color:transparent;box-shadow:0 -1.05em 0px 0px ${randomColor(200)} inset;border-radius:2px;color:black!important;
-    transition: box-shadow .1s ease-in;`;
-    //CREATE THE INNER-STYLE WITH ID #highlightstrongs IN THE HEAD IF IT DOESN'T EXIST
-    if (!document.querySelector('style#highlightstrongs')) {
-        createNewStyleSheetandRule('highlightstrongs', cs)
+    let allStrNumsInWord=x.trim().split(' ');
+    let alreadyHighlightedStrnum=[];
+    let rc=randomColor(200);
+    allStrNumsInWord.forEach(stnum => {
+        let ruleSelector= `span[strnum].${stnum}`;
+        if (document.querySelector('style#highlightstrongs')&&findCSSRule(highlightstrongs, ruleSelector) != -1) {
+            //first unhighlight the strNums with highlight then
+            addRemoveRuleFromStyleSheet('cs', ruleSelector, highlightstrongs)
+            //get all strongs number that have been highlihgted
+            alreadyHighlightedStrnum.push(stnum)
+            }
+    });
+    if(alreadyHighlightedStrnum.length!=allStrNumsInWord.length){//Not all strNums were formally highlighted
+        highlightArrOfStrNum(allStrNumsInWord)//apply an equal color to all of them
     }
-    //ELSE IF IT ALREADY EXISTS
-    else {
-        let ruleSelector = `span[strnum="${x}"]`
-        addRemoveRuleFromStyleSheet(cs, ruleSelector, highlightstrongs)
+
+    function highlightArrOfStrNum(xxx){
+        xxx.forEach(stnum => {
+            let ruleSelector= `span[strnum].${stnum}`;
+            cs = `span[strnum].${stnum}{background-color:transparent;box-shadow:0 -1.05em 0px 0px ${rc} inset;border-radius:2px;color:black!important;transition: box-shadow .1s ease-in;`;
+
+            //CREATE THE INNER-STYLE WITH ID #highlightstrongs IN THE HEAD IF IT DOESN'T EXIST
+            if (document.querySelector('style#highlightstrongs')) {//IF HIGHLIGHTSTRONGS STYLESHEET ALREADY EXISTS
+                addRemoveRuleFromStyleSheet(cs, ruleSelector, highlightstrongs)
+            } else {//ELSE HIGHLIGHTSTRONGS STYLESHEET DOES NOT ALREADY EXISTS
+                createNewStyleSheetandRule('highlightstrongs', cs)
+            }
+        });
     }
 }
 var clickeElmArray = [];
@@ -162,7 +206,7 @@ function removeRecentStrongsFromArray(stn) {
             clickeElmArray.splice(index, 1)
         }
         highlightAllStrongs(stn)
-        if (highlightstrongs) {
+        if (document.querySelector('style#highlightstrongs')) {
             setItemInLocalStorage('strongsHighlightStyleSheet', getAllRulesInStyleSheet(highlightstrongs));
         }
     }, 300);
@@ -196,7 +240,7 @@ function strongsHighlighting(e) {
 //window.onload = () => cacheFunctions();
 //Moved to after loading of first chapter
 
-pagemaster.addEventListener("dblclick", function (e) {
+if(document.querySelector('#pagemaster')){pagemaster.addEventListener("dblclick", function (e) {
     hoverElm = e.target;
     if (hoverElm.nodeName == 'SPAN' && hoverElm.classList.contains('translated') && !hoverElm.classList.contains('eng2grk')) {
         let allstn = hoverElm.getAttribute('strnum').split(' '); //Some words are translated from more than one word
@@ -220,19 +264,21 @@ pagemaster.addEventListener("dblclick", function (e) {
         })
     }
     setItemInLocalStorage('transliteratedWords', transliteratedWords_Array);
-})
+})}
 
 //HIGHLIGHTING CLICKED WORD
 const strongs_dblclick_prevent = debounce(strongsHighlighting, 300);
 main.addEventListener("click", strongs_dblclick_prevent)
-searchPreviewFixed.addEventListener("click", strongs_dblclick_prevent)
-main.addEventListener("click", hideBibleNav)
+if(!document.querySelector('body').matches('#versenotepage')){
+    searchPreviewFixed.addEventListener("click", strongs_dblclick_prevent)
+    main.addEventListener("click", hideBibleNav)
+}
 
 function hideBibleNav() {
     hideRefNav('hide', bible_nav)
 } //HIDE refnav SIDE BAR IF OPEN BY CLICKING ANYWHERE ON THE PAGE
 
-/* EVENT LISTENERS FOR THE HIGHLIGHING ALL ELEMENTS WITH THE SAME CLASS NAME BY HOVERING OVER ONE OF THEM */
+/* EVENT LISTENERS FOR HIGHLIGHTING ALL ELEMENTS WITH THE SAME CLASS NAME BY HOVERING OVER ONE OF THEM */
 /* This is acomplished by modifying the styles in the head */
 main.addEventListener('mouseover', function (e) {
     let strAtt,highlightColor;
@@ -244,7 +290,7 @@ main.addEventListener('mouseover', function (e) {
     else {
         let strElm = null;
         if (e.target.matches('#context_menu[strnum]')||(strElm=elmAhasElmOfClassBasAncestor(e.target,'#context_menu[strnum]'))) {
-            // 'rightClickedElm' & 'firstShadowColorOfElem' are gotten from the rightclickmenu function
+            /* 'rightClickedElm' & 'firstShadowColorOfElem' are gotten from the rightclickmenu function */
             if(firstShadowColorOfElem){
                 if(strElm){
                     strAtt=strElm.getAttribute('strnum');

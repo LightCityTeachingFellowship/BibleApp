@@ -3,11 +3,34 @@ let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMo
 /* RIGHT-CLICK MENU */
 let timer1, timer2;
 let rightClickedElm = null;
+let main;
+let newStrongsDef = '';
+
+// Check if it is index page or verseNotes page
+if(document.querySelector('body').matches('#versenotepage')){
+    main=document.querySelector('#col2')
+    // Load KJV bible for scripture tooltip
+    var KJV;
+    // window.onload = function () {
+        var request_KJV_URL = 'bibles/KJV.json';
+        var kjvBible = new XMLHttpRequest();
+        kjvBible.open('GET', request_KJV_URL);
+        kjvBible.responseType = 'json';
+        kjvBible.send();
+        kjvBible.onload = function () {
+            let booksChaptersAndVerses = kjvBible.response;
+            KJV = booksChaptersAndVerses['books'];
+            // cacheFunctions() //GET TRANSLITERATED ARRAY FROM CACHE
+        }
+    // }
+}else{main=document.querySelector('#main');}
+
 // let context_menu = document.querySelector('#context_menu');
 function add_tooltipContextMenu(e) {
     e.preventDefault();
+
+    // If there isn't a contextMenu already, create one
     if(!document.querySelector('#context_menu')){
-        // <div id="context_menu" class="context_menu slideout"></div>
         let context_menu_replacement=document.createElement('div');
         context_menu_replacement.id = 'context_menu';
         context_menu_replacement.classList.add('context_menu');
@@ -15,18 +38,20 @@ function add_tooltipContextMenu(e) {
         main.prepend(context_menu_replacement);
         context_menu.addEventListener("click", codeELmRefClick);
     }
+
+    // If the traget is a strong's number
     if(e.target.getAttribute('strnum')&&!e.target.matches('.context_menu')){
         rightClickedElm = e.target;
         firstShadowColorOfElem=getBoxShadowColor(rightClickedElm);
     }
     
     // FOR SHOWING AND HIDING THE RIGHTCLICK MENU
-    var menusX = e.x;
-    if (e.target.matches('.translated, .strnum, .crossrefs>span, .verse_note span') /* && (!e.target.matches('#context_menu')&&!elmAhasElmOfClassBasAncestor(e.target,'#context_menu')) */ ) {
+    if (e.target.matches('.translated, .strnum, .crossrefs>span, .verse_note span, .win2_noteholder span')){
         getCurrentStrongsDef(e);
         clearTimeout(timer1);
         clearTimeout(timer2);
         let currentEt=e.target;
+
         if (e.type == 'mouseover') {
             clearTimeout(timer1);
 
@@ -43,21 +68,35 @@ function add_tooltipContextMenu(e) {
             timedFUNC()
         }
 
+        /* getBoundingClientRect()
+            The getBoundingClientRect() method returns
+                i.  The size of an element and
+                ii. Its position relative to the viewport.
+                
+                Note: The scrolling that has been done is taken into account. This means that the rectangle's edges (top, left, bottom, and right) change their values every time the scrolling position changes.
+                
+                It returns a DOMRect object with eight properties: left, top, right, bottom, x, y, width, height.
+            */
+
+        /* offset... (offsetLeft/offsetRight/offsetWidth/offsetHeight/offsetParent)
+                Definition and Usage:
+                    i.  The offsetLeft property returns the left position (in pixels) relative to the parent.
+                    ii. The returned value includes:
+                        a. the left position, and
+                        b. margin of the element
+                        c. the left padding,
+                        d. scrollbar and
+                        e. border of the parent
+            */
         function timedFUNC() {
-            let target_right = e.target.getBoundingClientRect().right;
-            // let target_left = e.target.offsetLeft;
-            let target_left = e.target.getBoundingClientRect().left;
-            let target_top = e.target.offsetTop;
-            // let target_top = e.target.getBoundingClientRect().top;
-            let target_bottom = e.target.getBoundingClientRect().bottom;
-            let target_width = e.target.offsetWidth;
-            let originalWord, extraLeft = 0;
-            let addquotes = true;
-            let eParent;
-            // console.clear()
-            // console.log(elmAhasElmOfClassBasAncestor(e.target, '.verse_note'))
-            // Append to verseNote
+            let originalWord, extraLeft = 0, addquotes = true, eParent;
+            eTarget = e.target;
+
+        /* -------------------------------- */
+            /* WHERE TO APPEND CONTEXT-MENU */
+            /* Append to verseNote */
             if (elmAhasElmOfClassBasAncestor(e.target, '.verse_note')) {
+                // clog('1')
                 eParent = elmAhasElmOfClassBasAncestor(e.target, '.verse_note').querySelector('.text_content');
                 if (!eParent.querySelector('#context_menu')) {
                     //move the #context_menu from #main to #searchPreviewFixed
@@ -67,31 +106,44 @@ function add_tooltipContextMenu(e) {
                     clonedContextMenu.addEventListener("click", codeELmRefClick)
                 }
             }
-            // Append to verse
+            /* Append to verse */
             else if (elmAhasElmOfClassBasAncestor(e.target, '#main')) {
                 eParent = document.querySelector('#main');
                 if (eParent.offsetLeft != 0) {
                     extraLeft = eParent.offsetLeft;
                 }
-                //if the #context_menu is not in #main, then it must be in #searchPreviewFixed
                 if (!eParent.querySelector('#context_menu')||main.querySelector('.verse_note #context_menu')) {
+                    //if the #context_menu is not in #main, then it must be in #searchPreviewFixed
                     //move the #context_menu from #searchPreviewFixed to #main
                     let clonedContextMenu = document.querySelector('#context_menu').cloneNode(true);
                     document.querySelector('#context_menu').remove()
                     main.append(clonedContextMenu)
                 }
             }
-                //if the #context_menu is not in #searchPreviewFixed, then it must be in #main 
+            /* Append to #searchPreviewFixed */
             else if (elmAhasElmOfClassBasAncestor(e.target, '#searchPreviewFixed')) {
                 eParent = document.querySelector('#searchPreviewFixed');
                 if (!eParent.querySelector('#context_menu')) {
-                    //move the #context_menu from #main to #searchPreviewFixed
+                    // if the #context_menu is not in #searchPreviewFixed, then it must be in #main 
+                    // move the #context_menu from #main to #searchPreviewFixed
                     let clonedContextMenu = main.querySelector('#context_menu').cloneNode(true);
                     main.querySelector('#context_menu').remove()
                     searchPreviewFixed.append(clonedContextMenu)
                 }
             }
-
+            /* Append to #win2_noteholder */
+            else if (elmAhasElmOfClassBasAncestor(e.target, '.win2_noteholder')) {
+                eParent = elmAhasElmOfClassBasAncestor(e.target, '.win2_noteholder');
+                // clog(eParent)
+                if (!eParent.querySelector('#context_menu')) {
+                    let clonedContextMenu = main.querySelector('#context_menu').cloneNode(true);
+                    main.querySelector('#context_menu').remove()
+                    eParent.append(clonedContextMenu)
+                    clonedContextMenu.addEventListener("click", codeELmRefClick)
+                }
+            }
+            
+            /* If eTraget is a [Translated Strongs Word] or the [Strongs Number] itself */
             if (e.target.matches('.translated, .strnum')) {
                 // On Mobile Devices
                 if (isMobileDevice) {
@@ -139,26 +191,31 @@ function add_tooltipContextMenu(e) {
                     h2relocate.remove();
                     context_menu.querySelector('.strngsdefinition').prepend(h2clone)
                 }
-                // context_menu.removeAttribute('style');
                 context_menu.style.height = null;
                 context_menu.style.left = null;
                 if (strnum = e.target.getAttribute('strnum')) {
                     context_menu.setAttribute('strnum', strnum)
                 }else{context_menu.removeAttribute('strnum')}
                 hideRefNav('show', context_menu)
-            } else /* if (e.type == 'contextmenu' || e.type == 'mouseover')  */ {
+            }
+            /* If eTarget is a Scripture Reference */
+            else {
                 context_menu.innerText = null;
-                if (e.target.matches('.crossrefs>span, .verse_note span')) {
+                context_menu.classList.add('win2');
+                if (e.target.matches('.crossrefs>span, span[ref]')) {
                     let cmtitlebar = document.createElement('div');
                     cmtitlebar.classList.add('cmtitlebar');
-                    let cmtitletext = e.target.innerText;
+                    let cmtitletext;
+                    if(bkn=e.target.getAttribute('bkn')){
+                        cmtitletext = bkn + ' ' + e.target.innerText;
+                    }
+                    else{cmtitletext = e.target.innerText;}
                     cmtitletext = cmtitletext + ' [' + bversionName + ']';
                     // cmtitlebar.innerText=e.target.innerText;
                     cmtitlebar.innerText = cmtitletext;
                     context_menu.append(cmtitlebar);
                 }
                 context_menu.append(getCrossReference(e.target));
-                // context_menu.removeAttribute('style');
                 context_menu.style.height = null;
                 context_menu.style.left = null;
                 if (strnum = e.target.getAttribute('strnum')) {
@@ -166,21 +223,90 @@ function add_tooltipContextMenu(e) {
                 }else{context_menu.removeAttribute('strnum')}
                 hideRefNav('show', context_menu)
             }
-            /* POSITION MENU */
-            let cmH = context_menu.offsetHeight;
-            context_menu.style.left = menusX + window.scrollX - extraLeft + "px";
-            let target_height = e.target.offsetHeight;
-            if (window.innerWidth - target_left + extraLeft <= 500) {
-                context_menu.style.right = window.innerWidth - target_right - window.scrollX + "px";
-                context_menu.style.left = '';
-            } else {
-                context_menu.style.left = target_left + window.scrollX - extraLeft + "px";
-                context_menu.style.right = "";
+
+        /* ------------------------------------------ */
+            /* POSITION & COORDINATES OF CONTEXT MENU */
+            eP = eParent;
+            let cmMaxWidth;//-->max width of contextMenu
+            if(eParent.offsetWidth<1000){cmMaxWidth = 500}else{cmMaxWidth = 600}
+            if(eParent.offsetWidth<=500){cmMaxWidth = eParent.offsetWidth}
+
+            // let target_right = e.target.getBoundingClientRect().right;
+            let target_right = eParent.offsetWidth - (eTarget.offsetLeft + eTarget.offsetWidth);
+            if(target_right<0){target_right=0}// multiline spans at the edge return a very large width
+            // let target_left = e.target.offsetLeft.toFixed();
+            let target_left = e.target.getBoundingClientRect().left;
+            let target_top = e.target.offsetTop;
+            // let target_top = e.target.getBoundingClientRect().top;
+            if(document.querySelector('body').matches('#versenotepage')){
+                target_left = e.target.offsetLeft;
             }
-            //IF CONTEXT MENU IS TO CLOSE TO THE BOTTOM
-            let btnsBarHeight = document.querySelector('#top_horizontal_bar_buttons').getBoundingClientRect().height;
-            let space_above_target = target_top - eParent.scrollTop;
+
+            // let leftCoord = target_left + window.scrollX - extraLeft;
+            let leftCoord;
+            if(main.matches('#col2')){leftCoord = eTarget.offsetLeft - extraLeft;}
+            else{leftCoord = eTarget.getBoundingClientRect().left - extraLeft;}
+            let right4rmLeft = target_right;
+            // let right4rmLeft = eParent.offsetWidth - (target_right + eParent.offsetLeft);
+            // let right4rmLeft = eParent.offsetWidth - (eTarget.offsetLeft + eTarget.offsetWidth);
+            let rightCoord = right4rmLeft - window.scrollX;
+            
+            // aligns to the left by default
+            if(leftCoord<0){leftCoord=0}
+            context_menu.style.left = '';
+            context_menu.style.right = '';
+            let subfunct;
+            // ContextMenu fit
+            let space2dRight = target_right + eTarget.offsetWidth + extraLeft;
+            // Width of parent window smaller than context menu
+            if (eParent.offsetWidth <= cmMaxWidth) {
+                subfunct = 'parentWidth2SMALL';
+                // Not enough space to the right for context menu
+                context_menu.style.right = 0;
+                context_menu.style.left = 0;
+                context_menu.style.minWidth = cmMaxWidth + "px"        
+                context_menu.style.width = cmMaxWidth + "px" 
+            }
+            // Not enough space to the right for context menu
+            else if (space2dRight <= cmMaxWidth) {
+                subfunct = 'Right2Small';
+                if(target_left<cmMaxWidth){
+                    context_menu.style.right = e.offsetWidth - (target_right + target_left) + "px";
+                } else {
+                    context_menu.style.right = target_right + "px";
+                }
+                context_menu.style.left = '';
+            }
+            else {
+                subfunct = 'Left-2-Right';
+                if(main.matches('#col2')){
+                    if((leftCoord + cmMaxWidth) > eP.offsetWidth){
+                        context_menu.style.left = "";
+                        context_menu.style.right = 0;
+                    }
+                    else {
+                        context_menu.style.left = leftCoord + "px";
+                        context_menu.style.right = "";
+                    }
+                }
+                else{
+                    leftCoord = target_left + window.scrollX - extraLeft;
+                    context_menu.style.left = leftCoord + "px";
+                    context_menu.style.right = "";
+                }       
+            }
+            // console.table({subfunct, ePWidth:eP.offsetWidth, leftCoord, space2dRight,cmMaxWidth})
+
+
+            //IF CONTEXT MENU IS TOO CLOSE TO THE BOTTOM
+            let target_height = e.target.offsetHeight;
+            let btnsBarHeight;
+            if(top_horizontal_bar_buttons = document.querySelector('#top_horizontal_bar_buttons')){btnsBarHeight = top_horizontal_bar_buttons.getBoundingClientRect().height;}else{btnsBarHeight=0}
+            let space_above_target;
+            if(eParent){space_above_target = target_top - eParent.scrollTop;}
+            else{space_above_target = target_top - e.target.scrollTop}
             let space_below_target = window.innerHeight - btnsBarHeight - space_above_target;
+
             // Space Below Target Enough for ContextMenu
             if (space_below_target >= context_menu.offsetHeight) {
                 // context_menu.style.height = space_below_target - eParent.offsetTop - target_height + "px";
@@ -188,13 +314,10 @@ function add_tooltipContextMenu(e) {
             }
             // Space Below Target NOT Enough for ContextMenu
             else {
-                // console.log('belowIsLEssThanCMH')
                 if (space_below_target >= space_above_target) {
-                    // console.log('111')
                     context_menu.style.height = space_below_target - eParent.offsetTop - target_height + "px";
                     context_menu.style.top = target_top + target_height + "px";
                 } else {
-                    // console.log('222')
                     if (space_above_target >= context_menu.offsetHeight) {
                         context_menu.style.top = target_top - context_menu.offsetHeight + "px";
                     } else {
@@ -207,14 +330,14 @@ function add_tooltipContextMenu(e) {
         context_menu.scrollTop = 0;//scroll contextMenu back to top incase it has been srolled
     } else if (context_menu.matches('.slidein') && !(e.target.matches('#context_menu') || elmAhasElmOfClassBasAncestor(e.target, '.context_menu'))) {
         function removeContextMenu() {
-            hideRefNav('hide', context_menu, removeCMPevtListner());
+            hideRefNav('hide', context_menu);
+            // hideRefNav('hide', context_menu, removeCMPevtListner());
             context_menu.removeAttribute('strnum');
             context_menu.innerHTML = '';
         }
         removeContextMenu();
     }
 }
-let newStrongsDef = '';
 
 function getCurrentStrongsDef(e) {
     if (strnum = e.target.getAttribute('strnum')) {
@@ -226,128 +349,10 @@ function getCurrentStrongsDef(e) {
         context_menu.removeAttribute('strnum');
         if(strnum){context_menu.setAttribute('strnum', strnum);}
         newStrongsDef = currentStrongsDef;
-        toolTipOnOff(false);
+        if(!document.querySelector('body').matches('#versenotepage')){
+            toolTipOnOff(false);
+        }
     } else if (e.type != 'contextmenu') {
         newStrongsDef = '';
-    }
-}
-
-const add_tooltipContextMenu_preventDoublick = debounce(add_tooltipContextMenu, 300);
-
-ppp.addEventListener('contextmenu', add_tooltipContextMenu, false);
-searchPreviewFixed.addEventListener('contextmenu', add_tooltipContextMenu, false);
-searchPreviewFixed.addEventListener('mousedown', add_tooltipContextMenu_preventDoublick, false);
-
-ppp.addEventListener('mouseout', function (e) {
-    if (e.target.matches('.translated, .strnum, .crossrefs>span, .verse_note span')) {
-        clearTimeout(timer1)
-    }
-});
-main.addEventListener('mouseover', function (e) {
-    if (e.target.matches('.translated')) {
-        e.preventDefault()
-    }
-});
-
-function add_mouseoverContextMenuEventListner() {
-    // searchPreviewFixed.addEventListener('mouseover', add_tooltipContextMenu, false);
-    searchPreviewFixed.addEventListener('click', add_tooltipContextMenu_preventDoublick, false);
-
-    ppp.addEventListener('mouseover', add_tooltipContextMenu, false);
-
-    // for strongs number breakdown on click
-    // ppp.addEventListener('click', add_tooltipContextMenu_preventDoublick, false);
-}
-
-function remove_mouseoverContextMenuEventListner() {
-    hideRefNav('hide', context_menu); //In case it is on the screen
-    ppp.removeEventListener('mouseover', add_tooltipContextMenu, false);
-    searchPreviewFixed.removeEventListener('click', add_tooltipContextMenu, false);
-}
-add_mouseoverContextMenuEventListner()
-
-tool_tip.addEventListener('click', () => {
-    toolTipOnOff();
-    toolTipON = ttip_check.checked;
-});
-
-let toolTipON = ttip_check.checked; //Is modified by escape or alt + t
-document.addEventListener('keydown', evt => {
-    if ((evt.key === 'y'||evt.key === 'Y') && evt.altKey) {
-        toolTipOnOff();
-        toolTipON = ttip_check.checked;
-    }
-    if (evt.key === 'Escape' && document.querySelector('#context_menu')) {
-        hideRefNav('hide', context_menu);
-        context_menu.innerHTML = '';
-    }
-});
-
-function toolTipOnOff(x) {
-    if (x == false || ttip_check.checked) {
-        ttip_check.checked = false;
-        tool_tip.classList.remove("active_button");
-        remove_mouseoverContextMenuEventListner();
-        // add_rClickcontextMenuEventListner();
-        removeCMPevtListner();
-    } else {
-        ttip_check.checked = true;
-        tool_tip.classList.add("active_button");
-        add_mouseoverContextMenuEventListner();
-        // remove_rClickcontextMenuEventListner();
-    }
-}
-//Hide ContextMenu on clicking outside of main window
-document.addEventListener('click', function (e) {
-    if (document.querySelector('.context_menu') && (!e.target.matches('[strnum]') && !e.target.matches('.context_menu') && !elmAhasElmOfClassBasAncestor(e.target, '.context_menu'))) {
-        hideRightClickContextMenu()
-    }
-})
-
-function updateContextMenuPosition(oldScrollTop) {
-    // console.log(main.scrollHeight)
-    // console.log(oldScrollTop)
-    // console.log(main.scrollTop)
-    // console.log(main.clientHeight)
-    // console.log(main.scrollHeight - main.scrollTop - main.clientHeight)
-}
-
-function addCMPevtListner() {
-    let scrlT = main.scrollTop;
-    ppp.addEventListener('scroll', updateContextMenuPosition(scrlT))
-    searchPreviewFixed.addEventListener('scroll', updateContextMenuPosition(scrlT))
-}
-
-function removeCMPevtListner() {
-    ppp.removeEventListener('scroll', updateContextMenuPosition)
-    searchPreviewFixed.removeEventListener('scroll', updateContextMenuPosition)
-}
-// function add_rClickcontextMenuEventListner() {
-//     ppp.addEventListener('contextmenu', add_tooltipContextMenu, false);
-// }
-// function remove_rClickcontextMenuEventListner() {
-//     ppp.removeEventListener('contextmenu', add_tooltipContextMenu, false);
-// }
-
-context_menu.addEventListener("click", codeELmRefClick);
-
-/* FOR SHOWING CROSSREFS AND VERSES NOTES */
-ppp.addEventListener("mouseover", codeButtons);
-function codeButtons(e) {
-    if(document.getElementById('show_crossref_comments')==null){ //It may get removed on loading new reference
-        let newElm = document.createElement('div');
-        newElm.classList.add('slideout');
-        newElm.id='show_crossref_comments';
-        newElm.innerHTML=`<button class="buttons verse_crossref_button" id="verse_crossref_button"><a>TSK</a></button><button class="buttons verse_notes_button" id="verse_notes_button"><a>Note</a></button>`;
-        ppp.append(newElm);
-    } else if(show_crossref_comments){
-        if (e.target.matches('.verse code') && (e.type == 'mouseover')) {
-            relocateElmTo(show_crossref_comments, e.target);
-            show_crossref_comments.classList.remove('slideout');
-            show_crossref_comments.classList.add('slidein');
-        } else if (!e.target.matches('.verse code') && (e.type == 'mouseout')) {
-            show_crossref_comments.classList.remove('slidein');
-            show_crossref_comments.classList.add('slideout');
-        }
     }
 }
