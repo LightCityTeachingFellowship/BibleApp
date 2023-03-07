@@ -9,17 +9,31 @@
     <link rel="stylesheet" href="bibleApp.css">
     <link rel="stylesheet" href="bibleApp-2.css">
     <link rel="stylesheet" href="page2_versenotes.css">
+    <script src="script.js/interact.min.js"></script>
     <title>Page 2</title>
 </head>
 
 <body id="versenotepage">
-    <button id="hide_col1" onclick="toggleCol2()"><img src="images/settings-gear-svgrepo-com.svg" alt="⚙"></button>
-    <div id="col1">
-        <button id="available_notes" onclick="appendAllRefsWithNote()" title="Pastor Sam ElYah's Bible Notes"><img src="images\book-pencil-svgrepo-com.svg" alt="&#9881;"></button>
-        <div id="bibleapp_available_notes" class="slidein"></div>
+    <div class="button-container">
+        <!-- <button id="hide_col1" class="reveal-button"><img src="images/settings-gear-svgrepo-com.svg" alt="⚙"></button> -->
+        <div class="button-group">
+            <!-- <button>KJV</button>
+            <button>ESV</button>
+            <button>NIV</button> -->
+        </div>
+        <button id="darkmode_btn" onclick="toggleDarkLightMode('darkmode')">D&L</button>
+        <button id="sidebar_togglebtn" onclick="toggleCol2()">
+            <span></span>
+            <span></span>
+        </button>
+        <button class="eng2grk_sup_btns" id="crossRefinScriptureTooltip" onclick="checkUncheck(crossRefinScriptureTooltip_check)"  title="Show TSK In Scripture Tooltip"><input type="checkbox" id="crossRefinScriptureTooltip_check" name="crossRefinScriptureTooltip_check" value="crossRefinScriptureTooltip_check">CRef</button>
+    </div>
+      <div id="col1">
+        <!-- <button id="available_notes" onclick="appendAllRefsWithNote()" title="Pastor Sam ElYah's Bible Notes"><img src="images\book-pencil-svgrepo-com.svg" alt="&#9881;"></button> -->
+        <div id="bibleapp_available_notes" class=""><i><br><br>Loading<br>Available<br>Notes... <br><br>Please<br>Wait...</i></div>
     </div>
     <div id="col2">
-        <div id="context_menu" class="context_menu slideout"></div>
+        <div id="context_menu" class="context_menu slideoutofview"></div>
         <details open>
             <summary>
                 <div class='openCloseIconHolder'></div>
@@ -30,8 +44,10 @@
     </div>
 </body>
 <script src="script.js/bibleApp.js" charset="utf-8"></script>
-<script src="data/bible.js"></script>
 <script src="script.js/helpers.js"></script>
+<script src="script.js/bibleApp_page2.js" charset="utf-8"></script>
+<script src="data/bible.js"></script>
+<script src="data/bibleApp_reKeyedCrossReference.js" charset="utf-8"></script>
 <script src="script.js/bibleApp_contextMenu_mainFunc.js"></script>
 <script src="script.js/bibleApp_contextMenu_notesPage.js"></script>
 <script src="script.js/bibleApp_transliteratorGreek.js" charset="utf-8"></script>
@@ -45,6 +61,30 @@
 <script src="script.js/bibleApp_crossRefrencer.js" charset="utf-8"></script>
 <script src="script.js/bibleApp_styles.js" charset="utf-8"></script>
 <script>
-    function toggleCol2(){if(col1.matches('.slideout')){col1.classList.add('slidein');col1.classList.remove('slideout')}else{col1.classList.add('slideout');col1.classList.remove('slidein')}}
+    function toggleCol2(){
+        let x = bibleapp_available_notes;
+        if(x.style.marginLeft == ''){
+            x.style.marginLeft = "-200px";
+        }
+        else {
+            x.style.marginLeft = "";
+        }
+        x.classList.toggle('slideoutofview');
+        // available_notes.classList.toggle('slideoutofview');
+        sidebar_togglebtn.classList.toggle('active_button')
+    }
+    
+    /* SHOW HIDE BUTTONS */
+    const buttonContainer = document.querySelector('.button-container');
+    const buttonGroup = document.querySelector('.button-group');
+    
+    function toggleDarkLightMode(cls){
+        document.querySelector('body').classList.toggle(cls);
+        if(document.body.matches('.darkmode')){localStorage.setItem('darkmode','true')}
+        else {localStorage.removeItem('darkmode')}
+    }
+    if (localStorage.getItem('darkmode')) {
+        document.body.classList.add('darkmode')
+    }
 </script>
 </html>

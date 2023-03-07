@@ -1,17 +1,20 @@
 :root {
     --fontsize-main: 15px;
     --fontsize-refnsearch: 30px;
+    --fontsize-versionsbuttons: 20px;
     --fontsize-scripture-nav: 15px;
     --fontsize-scripture: 13px;
     --fontsize-ref: 8px;
     --fontsize-strongstooltip: 13px;
     --fontsize-title:20px;
-    --width-sidebuttons:27px;
+    --width-sidebuttons:60px;
     --heighWidth-refnsrchbtn:58px;
     --width-mainbutton:35px;
     --ref-hlt: #dde3db;
     --searchedword-hlt: maroon;
     --ref-img: url(images/background.jpg);
+    --img-cancel: url(images/cancel-svgrepo-com.svg);
+    --img-chkbox:url(images/check-box-svgrepo-com.svg);
     --ref-paper: url(images/IyEMTp.jpg);
     --verse-higlight: #ffff92;
     --verse-higlight: #fffb001b;
@@ -19,9 +22,11 @@
     --vmultiple-hover:#fff39b;
     --vmultiple2-hover:rgba(255, 213, 0, 0.527);
     --nav-bg-color: #fbfbfb;
+    --crossrefbackground: #f3f0ff;
     --vhlt-border: #8080809c;
-    --vhlt: #ffffc4;
+    --vhlt: #ffffdd;
     --vhlt2: #ffff99;
+    --vhlt3: #ffffc4;
     --versenote-contextmenu:white;
     --noteEdit-active:#ffe8d7;
     --strgs-num:#403b69;
@@ -30,14 +35,13 @@
     --shadow-color2:rgba(67, 67, 67, 0.87);
     --shadow-color3:rgba(172, 160, 160, 0.87);
     --shadow-ctxtmenu-hover:rgba(20, 2, 67, 0.87);
-    --shadow-orange:rgb(188, 133, 13);
+    --shadow-orange:rgb(255, 224, 156);
     --span-trans-hover:rgb(151, 116, 0);
     --span-hover:#f6efe3;
     --chpt: rgb(238, 227, 202);
     --verse-hover: rgb(248, 246, 241);
     --main-font: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     --top-bar-bground-color: #212121;
-    --darkmode-bg1color: #212121;
     --scroll-track-bg-color: #878787;
     --scroll-thumb-border-color: #000000;
     --scroll-thumb-bgcolor: #4b4b4b;
@@ -63,9 +67,16 @@
     --black:black;
     --blue:blue;
     --brown:brown;
+    --whitish_noteContextMenu: rgb(252, 252, 252);
+    --col2-border:0.05em;
+    --btn-radius:0.25em;
 }
 ::selection {
     background-color: var(--selection);
+}
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    transition: background-color 600000s 0s, color 600000s 0s;
 }
 .b{font-weight: bold;}
 .i{font-style: italic;}
@@ -81,28 +92,72 @@
 html {
     padding: 0;
     font-size: var(--fontsize-main);
-    background: var(--ref-img);
+    /* background: var(--ref-img); */
     font-family: var(--main-font);
 }
-.text_content:empty::before{
-    content: 'Take down a comment to the verse';
-    font-size: large;
-    font-style: italic;
-}
-body>svg {
-    width: 100% !important;
-}
-svg{
-    filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
-}
 body {
+    display: flex;
     position: relative;
     margin: 0;
     overflow-y: hidden;
+    background: var(--ref-img);
     /* don't add color to the body, it will hide the svg */
 }
 body * {
     box-sizing: border-box;
+    -webkit-transition: all 0.1s ease-in-out;
+    -moz-transition: all 0.1s ease-in-out;
+    -o-transition: all 0.1s ease-in-out;
+    transition: all 0.1s ease-in-out;
+}
+body>svg {
+    width: 100% !important;
+}
+/* svg{
+    filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}*/
+#versenote_totheright {
+    position: relative;
+    display: none;
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    max-width: 0;
+    height: inherit;
+    background-color: var(--buttons);
+    font-size: var(--fontsize-main);
+    overflow-y: hidden;
+}
+#versenote_totheright.showingNote {
+    display: flex;
+    flex-direction: column;
+    max-width: 33vw;
+}
+#versenote_totheright #versenote_totheright_div1 {
+    font-size: 1.5em;
+    box-shadow: 0 5px 5px var(--shadow-color);
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+#versenote_totheright #versenote_totheright_div2 {
+    position: relative;
+    padding: 0.5rem;
+    overflow-y: auto;
+    height: 100%;
+}
+#versenote_totheright .note_closebtn_x {
+    top:0;
+    right: 0;
+}
+#versenote_totheright .context_menu,#versenote_totheright code {
+    font-size: var(--fontsize-main)!important;
+}
+button * {pointer-events: none;}
+.text_content:empty::before{
+    content: 'Take down a comment to the verse';
+    font-size: large;
+    font-style: italic;
 }
 sup{
     font-size: 0.6em;
@@ -120,19 +175,23 @@ li li li{
     left: 0;
     height: 100%;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
     grid-template-rows: auto 1fr;
     row-gap: 0;
-    border-bottom: 5px solid var(--scroll-thumb-hover-bg-color);
+    border-right: 1px solid var(--scroll-thumb-hover-bg-color);
 }
 /* #ppp code, #context_menu:not(.win2) code { */
 #ppp code, #context_menu code {
     font-size: var(--fontsize-ref);
 }
+#ppp code:hover, #context_menu code:hover {
+    z-index: 3;
+}
 .chptheading {
-    background-color: var(--chpt);
+    background: var(--chpt) !important;
     border-bottom: 0.5px solid var(--grey);
-    font-size:  var(--fontsize-main);
+    font-size:  calc(var(--fontsize-main) * 1.5);
+    border-left: 2px solid;
 }
 #ppp .verse:not(code) {
     font-size: var(--fontsize-scripture);
@@ -146,39 +205,163 @@ li li li{
     grid-row-start: 2;
     grid-row-end: 3;
     display: flex;
+    flex-direction: row;
     height: inherit;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+/* #refnav button:not(:last-child) { */
+    #refnav button:not(#bibleapp_versemarkers button):not(:last-child) {
+    border-bottom: none;
+}
+/* #refnav button:last-child {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}*/
+button#darkmodebtn {
+    font-family: apple color emoji,segoe ui emoji,notocoloremoji,segoe ui symbol,android emoji,emojisymbols,emojione mozilla;
 }
 .rtl {
     direction: rtl
 }
 code{position: relative; padding-top: 5px;}
-#show_crossref_comments{position: absolute;bottom:var(--fontsize-ref);display: flex;}
-#show_crossref_comments button{font-size: var(--fontsize-ref);font-weight: bold;padding: 2px 5px;border-width: 0.5px;}
-#show_crossref_comments button:not(:first-child){
-    margin-left: 2px;
+span.vmultiple code {
+    box-sizing:border-box;
+    font-weight:bolder;
+    font-style:italic;
+    text-decoration:none!important;
 }
-.showing_crossref #verse_crossref_button,
-.showing_versenote #verse_notes_button{
+span.vmultiple.noted code{
+    border-bottom: 2px solid var(--brown)!important;
+}
+span.vmultiple.noted code:before {
+    content: 'N';
+    position: absolute;
+    left: 0px;
+    top: -0.5em;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: red;
+}
+[class*="marker_"] code:before,
+[class^="marker_"] code:before,
+[class~="marker_"] code:before {
+    content: 'M';
+    position: absolute;
+    left: 0px;
+    top: -0.5em;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: purple;
+}
+span.vmultiple.noted code #verse_notes_button {
+    background: var(--white);
+    color: var(--green);
+}
+.darkmode span.vmultiple.noted code #verse_notes_button {
+    background: var(--brown);
+}
+#show_crossref_comments{
+    position: absolute;
+    left: -8%;
+    display: flex;
+    flex-wrap: wrap;
+    width: 150%;
+    bottom:var(--fontsize-ref);
+    border: 1px solid;
+    border-radius: 2px;
+    box-shadow: 2px 2px 0px 0px var(--shadow-color);
+}
+.darkmode #show_crossref_comments {
+    border: 1px solid white!important;
+}
+.darkmode #show_crossref_comments button{
+    border: 1px solid whitesmoke!important;
+    color: white!important;
+    background-color: darkcyan;
+}
+.vmultiple:not([class*=marker_]) #verse_marker_button,
+.vmultiple:not(.noted) #verse_notes_button {
+    background-color: none!important;
+    color:grey;
+}
+.vmultiple[class*=marker_] #verse_marker_button {
+    background-color: rgb(251, 216, 151);
+}
+.darkmode .vmultiple[class*=marker_] #verse_marker_button {
+    background-color: burlywood!important;
+}
+#show_crossref_comments button{
+    flex: 1 1 40%;
+    font-size: var(--fontsize-ref);
+    font-weight: bold;
+    padding: 2px 5px;
+    border-width: 0.5px;
+    background: var(--buttons);
+}
+#show_crossref_comments button:hover{
+    background: var(--white)!important;
+    color: black!important;
+}
+/* #show_crossref_comments button:not(:first-child){
+    margin-left: 2px;
+}*/
+#show_crossref_comments #verse_marker_button {
+    flex: 100%;
+}
+/* .showing_crossref */ .verse_crossref_button,
+/* .showing_versenote */ .verse_notes_button {
     background: var(--greenish);
-    font-style: italic;
+    font-style: italic!important;
+    font-weight: bold!important;
 }
 .crossrefs, .verse_note{
     box-shadow: 0 2px 2px 0var(--scroll-track-bg-color);
 }
 .crossrefs{
+    position: relative;
     padding: 5px 5px 0 5px;
-    background: var( --white);
+    background: var(--crossrefbackground);
+    box-shadow: inset 0 1px 4px var(--black);
     overflow: hidden;
     font-size: var(--fontsize-main);
     transition: max-height .2s ease-in-out;
     min-height: 10px;
     max-height: 500px;
+    padding: 8px;
     margin-bottom:5px;
     line-height: auto;
     opacity: 1;
+    /* z-index: 2; */
+}
+.darkmode .crossrefs {
+    background: transparent;
+}
+.crfnnote {
+    margin-bottom: 5px;
+    box-shadow: 0 2px 2px var(--black),0 0 1px var(--black);
+    box-shadow: 0 2px 1px var(--black);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+.showing_crossref .crfnnote {
+    box-shadow: 0 1px 1px var(--grey);
 }
 #verse_note{display: none; position: relative;}
+.verse_note:not(.note_temp_holder .verse_note), .note_temp_holder {
+    padding: 5px;
+    box-shadow: inset 0 -1px 5px var(--black),
+                inset 0 0px 5px var(--black),
+                inset 0 0px 5px var(--black);
+}
+.versenote_hidden {
+    padding: 0;
+}
 .verse_note {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -192,7 +375,6 @@ code{position: relative; padding-top: 5px;}
     opacity: 1;
     background-color: var(--whitesmoke);
     font-size: 1.2em;
-    box-shadow: 0 4.5px 10px 3px var(--shadow-color);
     z-index: 1;
 }
 .verse_note #context_menu {
@@ -207,24 +389,25 @@ code{position: relative; padding-top: 5px;}
     width: 100% !important;
     margin-left: 0;
     margin-right: 0;
-    border:1px solid var(--grey)!important;
+    /* border:1px solid var(--grey)!important; */
     min-height:50px;
     max-height:80vh;
     overflow: auto;
     resize: vertical;
-    
-    /* margin: 0.25em 0.25em;
-    padding: 0.25em 0.25em; */
+    padding: 10px;
 }
 .text_content span[ref],
-.text_content span[strnum]:not(#context_menu span[strnum]){
+.text_content span[strnum]:not(#context_menu span[strnum]),
+#versenote_totheright span[ref],
+#versenote_totheright span[strnum]:not(#context_menu span[strnum])
+{
     font-weight: bold;
     border-bottom: var(--black) 1px solid;
     color: var(--black);
     cursor: pointer;
 }
 .text_content #context_menu{
-    background: var(--ref-img);
+    background: var(--whitish_noteContextMenu);
     /* color: var(--white); */
 }
 .text_content span[ref]:hover{
@@ -242,6 +425,9 @@ code{position: relative; padding-top: 5px;}
 .save_edit_btns_holder button{
     font-size: large;
     font-weight: bold;
+}
+.note_temp_holder {
+    overflow: hidden;
 }
 .note_edit_button{
     background: none;
@@ -263,10 +449,54 @@ code{position: relative; padding-top: 5px;}
     font-style: italic;
     pointer-events: none;
 }
+/* CLOSE BUTTON FOR VERSENOTE */
+.note_closebtn:not(.note_closebtn_x)::before {
+    content: 'Close';
+}
+.closebtn, .note_closebtn {
+    content: 'Close';
+    font-style: italic;
+    display: block;
+    z-index: 10;
+    transition: all 0.3s ease-in-out;
+}
+.cmenu_closebtn,
+.note_closebtn_x {
+    background-color: whitesmoke!important;
+    background: var(--img-cancel) center no-repeat;
+    position: absolute;
+    width: 1em;
+    height: 1em;
+    top: 5px;
+    right: 0.7em;
+}
+#context_menu:not([strnum]) .cmenu_closebtn {
+    top: 0px;
+    right: 0.3em;
+}
+#context_menu[strnum] .cmenu_closebtn {
+    right: 0.3em;
+}
+.closebtn.cmenu_closebtn:hover {
+    background: url(images/cancel-svgrepo-com-BLACK.svg) center no-repeat;
+    background-color: transparent!important;
+    box-shadow: 0px 0px 0px 1px rgba(155, 0, 0, 0.281)!important;
+    border-radius: 0.2em;
+    transition: all 0.3s ease-in-out;
+}
+.closebtn.cmenu_closebtn:active {
+    box-shadow: 0px 0px 0px 1px rgba(155, 0, 0, 0.589)!important;
+    border-radius: 0.2em;
+    transition: all 0.3s ease-in-out;
+}
 #singleverse_compare_menu, #titlebarsearchparameters {
-    /* float: right; */
     display: flex;
+    flex-wrap: wrap;
     width: fit-content;
+}
+#titlebarsearchparameters > * {
+    flex-grow: 1;
+    justify-content: left;
 }
 #singleverse_compare_menu button {
     font-size: var(--fontsize-ref);
@@ -289,33 +519,46 @@ code{position: relative; padding-top: 5px;}
     border-right: 0.25px solid var(--grey);
     background: var(--ref-img);
     overflow: hidden;
-}
-#refnav #app_settings>button {
-    width: auto;
-    min-width: 40px;
-    padding: 6px 2px;
-    font-size: 22.5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    z-index: 10;
 }
 #refnav #app_settings * {
     display: block;
 }
 #refnav #app_settings img {
-    margin-left: 1px;
-    margin-right: 1px;
-    width: var(--width-sidebuttons);
+    margin-left: 5px;
+    margin-right: 5px;
+    width: calc(var(--width-sidebuttons) * 0.8);
 }
-#refnav #app_settings > button {
-    width:auto;
-    min-width:36px;
-    padding-left: 2px;
-    padding-right: 2px;
+#refnav #app_settings>button {
+    min-width: 45px;
+    width:var(--width-sidebuttons)!important;
+    height:var(--width-sidebuttons);
+    padding: 6px 2px;
     font-size: 22.5px;
+    font-size:calc(var(--width-sidebuttons)*0.65)!important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#refnav #app_settings>button:last-child {
+    border-bottom-left-radius: 0.25em;
+    border-bottom-right-radius: 0.25em;
 }
 #bible_nav {
+    background-color: transparent;
     font-size: var(--fontsize-scripture-nav)!important;
+    box-shadow: 0px 0px 10px 7px var(--shadow-color);
+    display: flex;
+}
+#bible_nav .bkname{
+    justify-content: flex-start;
+    padding-left: 0.5em;
+}
+#bible_nav .bkname, #bible_nav .chptnum {
+    width: 100%;
+    /* padding-left: 7px; */
+    /* box-shadow: inset 0px 0px 1px 0px var(--black); */
+    /* border-radius: 5px; */
 }
 .refnav .bible_nav {
     height: 99.5%;
@@ -344,7 +587,7 @@ code{position: relative; padding-top: 5px;}
 .tmp_hlt {
     background-color: var(--ref-hlt);
 }
-#bible_chapters>option {
+#bible_chapters > .chptnum {
     display: none;
 }
 .show_chapter {
@@ -361,10 +604,11 @@ button {
     align-items: center;
     justify-content: center;
     font-size: var(--fontsize-main);
-    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-family: '  Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     cursor: pointer;
     border: var(--buttons-border);
     background-color: var(--buttons);
+    overflow: hidden;
 }
 .buttons {
     width: auto;
@@ -374,12 +618,11 @@ button {
 #context_menu {
     position: absolute;
     background: var(--whitesmoke);
-    min-width: 400px;
-    /* max-width: 600px; */
-    max-width: 525px;
+    width: 400px;
+    max-width: 100%;
     max-height: 80vh;
-    overflow-y: scroll;
     padding: 5px;
+    overflow-y: scroll;
     -webkit-box-shadow: 3px 3px 3.5px 0px var(--shadow-color2), 0 5px 5px 2px var(--shadow-color3), inset 0px 0.5px 0px 0px var(--grey);
     -moz-box-shadow: 3px 3px 3.5px 0px var(--shadow-color2), 0 5px 5px 2px var(--shadow-color3), inset 0px 0.5px 0px 0px var(--grey);
     box-shadow: 3px 3px 3.5px 0px var(--shadow-color2), 0 5px 5px 2px var(--shadow-color3), inset 0px 0.5px 0px 0px var(--grey);
@@ -387,6 +630,17 @@ button {
     font-size: var(--fontsize-strongstooltip);
     overflow-x:hidden;
     resize: both;
+}
+#context_menu.slideintoview, #context_menu.slideoutofview {
+    transition: none;
+}
+#context_menu[strnum] {
+    padding: 0px;
+}
+#context_menu[strnum]>.cmtitlebar {
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 0.7em;
 }
 #context_menu:hover {
     -webkit-box-shadow: 5px 5px 15px 0px var(--shadow-ctxtmenu-hover);
@@ -402,8 +656,23 @@ button {
 #context_menu h2, #context_menu i  {font-size:inherit;}
 #context_menu .strngsdefinition div {display: block;}
 .vmultiple code:hover, #searchPreviewFixed .verse code:hover, .crossrefs>span:hover, #context_menu code:not(.cmtitlebar code):hover {text-decoration: underline;color: var(--blue);cursor: pointer;}
-#context_menu .cmtitlebar code {display: inline-flex;}
-#context_menu .cmtitlebar code{font-size:inherit}
+#context_menu .cmtitlebar code {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1.2em;
+}
+#context_menu code button.cmenusrchbtn {
+    width: 1.75em;
+    height: 1.75em;
+    
+    display: block;
+    padding: 0;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+#context_menu code button.cmenusrchbtn img {
+    pointer-events: none;
+}
 #context_menu div{z-index: 2;}
 #context_menu hr:not(:last-child){margin-top:0}
 #context_menu hr:last-child{margin-bottom:0}
@@ -418,21 +687,28 @@ button {
     width: 100%;
     padding-bottom: 10px;
     padding-right: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0px -21.5px 13px 28px var(--scroll-track-bg-color);
+    /* margin-bottom: 10px; */
+    /* box-shadow: 0px -21.5px 13px 28px var(--scroll-track-bg-color); */
     z-index: 3;
 }
+.verse_note #context_menu .cmtitlebar{
+    box-shadow: 0px -26.5px 8px 17px var(--scroll-track-bg-color);
+}
+
 #context_menu .cmtitlebar::before {
     position: absolute;
     content: '';
     left: -9px;
     top: -5px;
     width: 120%;
-    height: 115%;
+    height: 100%;
     background: var(--ref-img);
-    box-shadow: 0px -21px 3px 25px var(--scroll-track-bg-color);
+    box-shadow: 0px -21px 0px 25px var(--scroll-track-bg-color);
     z-index: -1;
 }
+/* #context_menu .cmtitlebar code {
+    font-size: 1.2em;
+}*/
 /* #context_menu .cmtitlebar::after{
     position: absolute;
     content: '';
@@ -443,7 +719,7 @@ button {
     width: 110%;
     height: 0px;
     z-index: -1;
-} */
+}*/
 #context_menu:not(.win2) .cmtitlebar~span{
     font-size:var(--fontsize-scripture);
 }
@@ -465,14 +741,15 @@ button:not(:disabled):hover {
     display: none !important;
 }
 #main {
-    max-width: 100%;
+    position: relative;
+    display: flex;
     grid-column-start: 2;
     grid-column-end: 3;
     grid-row-start: 2;
     grid-row-end: 3;
+    max-width: 100%;
+    box-shadow: inset 1px 0px 2px 0px var(--shadow-color);
     overflow-y: scroll;
-    display: flex;
-    position: relative;
 }
 #main>*>* {
     padding-left: 5px;
@@ -487,37 +764,110 @@ button:not(:disabled):hover {
 #ppp>span.verse:last-child {
     padding-bottom: 20px;
 }
-[strnum] {
+span[strnum] {
     cursor: pointer;
+    /* position: relative; */
+    border-radius: 3px!important;
 }
+span[strnum]:hover {
+    z-index: 1;
+}
+span[strnum] > span[strnum] {
+    border: none;
+}
+/* span.vmultiple {
+    position: relative;
+    z-index: 3;
+}*/
 span.verse:hover:not(.vhlt),
 span.vmultiple:hover {
-    transition: background 0.05s linear;
+    transition: background 0.05s ease-in-out;
+    border-radius: 0.1em;
 }
-span.verse:hover:not(.vhlt){
-    background-color: var(--verse-hover);
+#searchPreviewFixed span.verse {
+    box-shadow: 0px 2px 0px 0px var(--grey);
+    padding-bottom: 5px;
+    margin-right: 0px;
+}
+#searchPreviewFixed span.verse:hover:not(.vhlt){
     cursor: pointer;
+    box-shadow: inset 2px 0px 2px 0px var(--grey),inset -2px 0px 2px 0px var(--grey);
+    box-shadow:0px 1px 0px 0px var(--grey);
+    border-radius: 0;
 }
+.crossrefs+.span.vmultiple{
+    z-index: -4;
+}
+span[class^=v_]:hover {
+    background-color: var(--vhlt3)!important;
+    box-shadow: 2px 2px 4px -2px var(--shadow-color),-2px -2px 4px -2px var(--shadow-color),2px 2px 4px -2px var(--shadow-color),-2px -2px 4px -2px var(--shadow-color)!important; 
+    z-index:1;
+    transition: 250ms ease-in-out;
+}
+
+/* HIGHLIGHT VMULTIPLE */
 span.vmultiple:hover{
-    background-color: var(--vmultiple-hover);
-    background-color: var(--verse-hover);
-    background-color: var(--span-hover);
-    transition: box-shadow 0.05s linear;
+    background-color: var(--whitesmoke);
+    transition: box-shadow 0.05s ease-in;
     /* box-shadow: inset 1px 2.5px 3px -2px var(--shadow-color),
     inset 3px -3px 1.5px -1px var(--shadow-color)!important; */
     box-shadow: inset 0px 0px 5px 1px var(--shadow-color)!important;
-    z-index: 2;
+    transition: 250ms ease-in;
+    z-index: 4;
 }
-span[class^=v_]:hover {
-    background-color: var(--span-hover)!important;
-    background-color: var(--vhlt)!important;
-    z-index:5;
-    box-shadow: 0px 0px 3px 2px var(--shadow-color)!important; 
+/* HIGHLIGHT VERSION */
+/* :has(.v_KJV:hover) span.v_KJV,
+:has(.v_ESV:hover) span.v_ESV,
+:has(.v_NET:hover) span.v_NET,
+:has(.v_ABP-en:hover) span.v_ABP-en,
+:has(.v_NIV’84:hover) span.v_NIV’84,
+:has(.v_accented:hover) span.v_accented,
+:has(.v_ABP-gr:hover) span.v_ABP-gr {
+    background-color: var(--whitesmoke);
+    box-shadow: inset 2px 0px 0px 0px var(--grey),
+    inset -2px 0px 0px 0px var(--grey);
+    transition: 250ms ease-in;
+}
+:has(.v_KJV:hover) .chptverses .vmultiple:first-child span.v_KJV,
+:has(.v_ESV:hover) .chptverses .vmultiple:first-child span.v_ESV,
+:has(.v_NET:hover) .chptverses .vmultiple:first-child span.v_NET,
+:has(.v_ABP-en:hover) .chptverses .vmultiple:first-child span.v_ABP-en,
+:has(.v_NIV’84:hover) .chptverses .vmultiple:first-child span.v_NIV’84,
+:has(.v_accented:hover) .chptverses .vmultiple:first-child span.v_accented,
+:has(.v_ABP-gr:hover) .chptverses .vmultiple:first-child span.v_ABP-gr
+{
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    box-shadow: inset 0px 2px 0px 0px var(--grey),
+    inset 2px 0px 0px 0px var(--grey),
+    inset -2px 0px 0px 0px var(--grey);
+    transition: 250ms ease-in;
+}
+:has(.v_KJV:hover) .chptverses .vmultiple:last-child span.v_KJV,
+:has(.v_ESV:hover) .chptverses .vmultiple:last-child span.v_ESV,
+:has(.v_NET:hover) .chptverses .vmultiple:last-child span.v_NET,
+:has(.v_ABP-en:hover) .chptverses .vmultiple:last-child span.v_ABP-en,
+:has(.v_NIV’84:hover) .chptverses .vmultiple:last-child span.v_NIV’84,
+:has(.v_accented:hover) .chptverses .vmultiple:last-child span.v_accented,
+:has(.v_ABP-gr:hover) .chptverses .vmultiple:last-child span.v_ABP-gr
+{
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    box-shadow: inset 0px -2px 0px 0px var(--grey),
+    inset 2px 0px 0px 0px var(--grey),
+    inset -2px 0px 0px 0px var(--grey);
+    transition: 250ms ease-in;
+}*/
+.v_dblclckd {
+    background-color: var(--vhlt-hover);
+    border-radius: 10px;
+    box-shadow: 0px 0px 0px 1px var(--grey);
 }
 span.translated:hover {
     border-bottom: 1px solid var(--span-trans-hover);
     color: var(--brown);
 }
+
 sup {
     font-weight: bold;
 }
@@ -538,7 +888,7 @@ sup {
     display: inline;
     font-weight: bold;
 }
-#fontchange {
+#fontchange, #fontsizes {
     width: 100%;
 }
 #eng2grk_sup_table{
@@ -547,18 +897,31 @@ sup {
     border-spacing: 0;
 }
 #eng2grk_sup_table td {
-    min-width:90px;
-    text-align: right;
+    padding:0;
 }
 #eng2grk_sup_table button {
     width:100%;
-    min-height:55px;
-    text-transform: lowercase;
+    min-height:30px;
+    min-height: 2.5em!important;
     font-weight:bold;
+}
+#bibleapp_cache td:first-child {
+    width: 125px;
+    text-align: right;
+    padding-right: 10px;
+}
+#bibleapp_cache ul,#bibleapp_cache ol {
+    max-width: 300px;
 }
 .strnum:after {
     content: attr(data-lemma);
     font-style: italic;
+}
+#context_menu .strnum:not(:hover),
+#strongsdefinitionwindow .strnum:not(:hover){
+    font-style: italic;
+    /* border-bottom: 1px solid; */
+    box-shadow: inset 0px -1px 0px 0px;
 }
 #searchresultwindow {
     position: absolute;
@@ -639,7 +1002,16 @@ sup {
     font-weight: bold;
     text-align: center;
 }
-.bible_versions_heading{
+#searchprametersbtnholder {
+    display: flex;
+    flex-wrap: nowrap;
+    margin-top: 0.5px;
+}
+#searchprametersbtnholder>button {
+    font-size: 13px;
+    width: auto;
+}
+.bible_versions_heading, #bibleapp_versemarkers_settings{
     box-shadow: 0 0.5px 0 var(--shadow-color);
     background-color: var(--whitesmoke);
     /* background-image: var(--ref-img); */
@@ -647,21 +1019,83 @@ sup {
     font-weight: bold;
     text-align: center;
 }
+#bibleapp_versemarkers {
+    border-right: solid 2px;
+    height: 100%;
+    width: 15em;
+    overflow-x: hidden;
+}
+
+#bibleapp_versemarkers details {
+    border-bottom: 2.5px solid;
+    padding-bottom: 0;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    /* background-color: var(--whitesmoke); */
+}
+#bibleapp_versemarkers details > div {
+    box-shadow: 0 2px 5px var(--shadow-color);
+    margin: 0.5em;
+    padding: 0.25em;
+}
+#bibleapp_versemarkers summary {
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    padding-right: 1em;
+    margin-bottom: 0;
+    height: 2em;
+    padding-bottom: 0.3em;
+}
+#bibleapp_versemarkers summary .openCloseIconHolder {
+    height: 5em!important;
+}
+#bibleapp_versemarkers summary img {
+    width: 1.4em;
+}
+#bibleapp_versemarkers #otherbooks_versemarkers_list,
+#bibleapp_versemarkers #currentbook_versemarkers_list {
+    margin-left: 0.3em;
+    margin-right: 0.3em;
+}
+#bibleapp_versemarkers #otherbooks_versemarkers_list .vm_btns:last-of-type,
+#bibleapp_versemarkers #currentbook_versemarkers_list .vm_btns:last-of-type {
+    margin-bottom: 0.3em;
+}
+#bibleapp_versemarkers #currentbook_versemarkers_list:empty:before,
+#bibleapp_versemarkers #otherbooks_versemarkers_list:empty:before,
+#bibleapp_versemarkers #currentbook_versemarkers_list:not(:empty):before {
+    content:attr(empty_txt);
+    font-weight: bold;
+}
+#bibleapp_versemarkers #otherbooks_versemarkers_list:not(:empty):before {
+    content:"Other Book Markers";
+    font-weight: bold;
+}
+#bibleapp_versemarkers #otherbooks_versemarkers_list:not(:empty),
+#bibleapp_versemarkers #currentbook_versemarkers_list:not(:empty) {
+    margin-top: 0.5em;
+    padding: 0.2em 0.2em 0 0.2em;
+    border-bottom: 2px solid grey;
+    box-shadow: 0 2px 5px var(--shadow-color);
+}
 #bibleapp_cache *:not(.settingssectionheadings) {
     font-size: var(--fontsize-main);
 }
 .bible_nav {
-    float: left;
     overflow-y: scroll;
     height: 100%;
+    font-weight: bold;
 }
 
 #strongsdefinitionwindow details, details {
-    /* border: 1px solid #aaa; */
-    border-top: 1px solid #aaa;
-    border-radius: 4px;
-    padding: .5em .5em 0;
+    border-bottom: 2px solid #aaa;
+    /* border-radius: 4px; */
+    padding: .25em 0;
     z-index: -10;
+}
+#bibleapp_available_notes details {
+    padding: 0;
+    margin-bottom: 8px;
 }
 
 #strongsdefinitionwindow summary, summary {
@@ -681,32 +1115,31 @@ sup {
 #strongsdefinitionwindow summaryh2, summaryh2 {
     font-size: 1em;
 }
-/* #strongsdefinitionwindow summary>div, summary>div {
-    background: url(images/up-arrow-svgrepo-com.svg) center no-repeat;
-} */
 #strongsdefinitionwindow summary>div:first-of-type, summary>div:first-of-type {
     background: url(images/arrow-up-svgrepo-com.svg) center no-repeat;
     min-width: 1em;
     height: 2em;
     margin: 10px;
 }
-
-#strongsdefinitionwindow details[open], details[open] {
-    /* background-color:#cbff7d24; */
-}
-
-#strongsdefinitionwindow details[open] summary, details[open] summary {
+#strongsdefinitionwindow details[open] > summary,
+details[open] summary {
     /* background-color:#fdff7f25; */
     border-bottom: 1px solid #aaa;
     margin-bottom: .5em;
 }
 
-#strongsdefinitionwindow details[open] summary > div:first-of-type,
-details[open] summary > div:first-of-type {
+#strongsdefinitionwindow details[open] > summary {
+    margin: 0;
+    width: 400px;
+}
+#strongsdefinitionwindow details > summary {
+    margin: 0;
+    width: 400px;
+}
+
+#strongsdefinitionwindow details[open] > summary > div:first-of-type,
+details[open] > summary > div:first-of-type {
     background: url(images/arrow-down-svgrepo-com.svg) center no-repeat;
-    /* min-width: 1em; */
-    /* height: 2em; */
-    /* margin: 10px; */
 }
 
 #bible_nav,
@@ -728,19 +1161,19 @@ details[open] summary > div:first-of-type {
 #bibleapp_cache {
     overflow-y: scroll;
 }
-#bibleapp_cache label,#bibleapp_cache input {
+/* #bibleapp_cache label,#bibleapp_cache input {
     display: inline!important;
-}
+}*/
 #cache_table {
     width: 100%;
     display: table!important;
     border-collapse:collapse;
 }
 #cache_table td{min-width:40px;}
-#cache_table td button{min-width: 100%;font-weight: bolder;}
+#cache_table td button{min-width: 100%;font-weight: bolder;font-size: 200%!important;padding: 0;}
 #hidestrongshighlight {display: none;}
 #strongsdefinitionwindow {
-    min-width: 400px;
+    /* min-width: 400px; */
     font-size: var(--fontsize-scripture);
 }
 #strongsdefinitionwindow::after {
@@ -751,16 +1184,13 @@ details[open] summary > div:first-of-type {
 }
 #searchPreviewWindowFixed,
 #strongsdefinitionwindow{
-    width: 600px;
-    max-width: 600px;
+    min-width: 200px;
+    max-width: 400px;
+    height: 100%;
+    overflow-x: hidden;
 }
 #resizerdiv {
-    background-color: var(--grey);
-    /* background-color: #70707072; */
-    float: right;
-    width: 1px!important;
-    height: 100%;
-    cursor: ew-resize;
+    display: none;
 }
 #resizerdiv:hover,#resizerdiv:active {
     background-color: var(--greenyellow);
@@ -774,6 +1204,7 @@ details[open] summary > div:first-of-type {
 }
 #bible_versions {
     font-size: var(--fontsize-main);
+    min-width: 150px;
 }
 .strngsdefinition h1,
 .strngsdefinition h2,
@@ -786,18 +1217,60 @@ details[open] summary > div:first-of-type {
     padding-bottom: 0;
     margin-bottom: 0;
 }
-.strngsdefinition {
-    margin-bottom: 10px;
+/* .strngsdefinition .strnum {
+    transition: none!important;
+}*/
+.strngsdefinition h5,h6 {
+    margin: 0px 5px 0px 0px;
+    padding-left: 7.5px;
+    border-bottom: 1px solid var(--grey);
+    font-style: italic;
+    background-color: rgb(105, 105, 105);
+    color: var(--white)!important;
+    z-index: 5;
 }
-#searchPreviewWindowFixed.slidein{
-    display: flex!important;;
+/* detail {
+    background-color: inherit;
+}
+summary {
+    background-color: inherit;
+}*/
+#strongsdefinition_text h5,h6 {
+    position: relative;
+    margin: 0px;
+    padding-left: 10px;
+    box-shadow: 0px 2px 0px 0px var(--grey);
+    font-style: italic;
+    background-color: rgb(105, 105, 105);
+    color: var(--white)!important;
+    z-index: 5;
+}
+.strngsdefinition p {
+    position: relative;
+    margin: 5px 10px;
+    font-size: 0.9em;
+    background-color:inherit;
+}
+.strngsdefinition div {
+    overflow: hidden;
+}
+#searchPreviewWindowFixed.slideintoview{
+    display: flex!important;
 }
 #searchPreviewWindowFixed {
+    position: relative;
     flex-direction: column;
     overflow-y: hidden;
     font-size: var(--fontsize-scripture);
     padding-bottom: 7px;
     margin-bottom: 7px;
+    height: 100%;
+    width: 350px;
+}
+#searchPreviewWindowFixed #context_menu {
+    left: 5px!important;
+    right: 5px!important;
+    width: calc(100% - 10px)!important;
 }
 #searchparameters div:last-child {
     display: block;
@@ -810,23 +1283,32 @@ details[open] summary > div:first-of-type {
     display: block;
     border-top: 1.1px solid var(--scroll-track-bg-color);
 }
-#hidesearchparameters {
-    padding: 0;
-    margin-top: -2px;
-    float: right;
-    border: 1px solid var(--scroll-track-bg-color);
-    background-color: var(--white);
-    cursor: pointer;
-    height: 15px;
+#searchparametertitlebar_holder{
+    display: flex;
 }
-.hidesearchparameters>*:not(div) {
+#searchparametertitlebar {
+    cursor: pointer;
+    height: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+#hidesearchparameters, #showonlysearchinput {
+    background-color: var(--whitesmoke);
+    min-width: calc(var(--fontsize-refnsearch) * 2.5);
+    border: 1px solid var(--scroll-track-bg-color);
+    cursor: pointer;
+    font-weight:900;
+}
+.hidesearchparameters>*:not(div),
+.hidesearchparameters #searchprametersbtnholder,
+.hidesearchparameters #searchdiv_fixed {
     display: none !important;
 }
 #searchPreviewFixed {
-    /* display: table-row; */
-    /* height: 92%; */
-    /* float: left; */
-    /* width: 100%; */
+    position: relative;
+    height: 100%;
     overflow-y: auto;
 }
 #searchPreviewFixed>* {
@@ -840,14 +1322,34 @@ details[open] summary > div:first-of-type {
     font-weight: bolder;
     margin: 0;
 }
-#searchPreviewFixed .chptheading+.verse {
+/* #searchPreviewFixed .chptheading+.verse {
     margin-top: 5px;
+}*/
+#searchdiv_fixed {
+    display: flex;
+    width: 100%;
+}
+input#wordsearch_fixed {
+    width: 100%;
+    height: auto;
+    border: none;
+}
+#forwordsearch_fixed:disabled, #forwordsearch_fixed:not(:disabled), #hidesearchparameters {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+input#wordsearch_fixed {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    background: var(--buttons);
+}
+#searchPreviewWindowFixed button {
+    border: 1px solid rgb(198, 198, 198);
 }
 
-
-
 ::-webkit-scrollbar {
-    width: 7.5px;
+    width: 0.35em;
+    height: 0.35em;
 }
 
 ::-webkit-scrollbar-track {
@@ -885,51 +1387,67 @@ details[open] summary > div:first-of-type {
 span.vmultiple:hover span.vhlt {
     background: var(--yellow);
 }
-span.vmultiple.noted code {
-    box-sizing:border-box;
-    font-weight:bolder;
-    font-style:italic;
-    border-bottom: 3px solid var(--orangered);
-    text-decoration:none!important;
-}
-span.vmultiple.noted code #verse_notes_button {
-    background: var(--white);
-    color: var(--green);
-}
 
 .slideup {
-    display: none;
-    min-height: 0;
-    max-height: 0;
-    padding: 0;
-    margin-bottom:0;
-    line-height: 0;
     opacity: 0;
-    -webkit-transition-duration: 0.3s;
-    -moz-transition-duration: 0.3s;
-    -o-transition-duration: 0.3s;
-    transition-duration: 0.3s;
+    overflow: hidden;
+    height: 0;
+    margin-top: -150px!important;
+    z-index: -1;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
-.slidein {
+#refnav>.refnav,
+#refnav>#bible_nav,
+#refnav>#bible_versions,
+#refnav>#searchPreviewWindowFixed,
+#refnav>#strongsdefinitionwindow,
+#refnav>#bible_versions,
+#refnav>#bibleapp_cache {
+    /* margin-left: 0px; */
+    transition: all 0.2s ease-in-out;
+}
+#refnav img, #top_horizontal_bar img {
+    pointer-events: none;
+}
+.slideintoview {
     display: block;
-    margin-left: 0;
+    margin-left: 0px;
     margin-top: 0;
-    -webkit-transition-duration: 0.3s;
-    -moz-transition-duration: 0.3s;
-    -o-transition-duration: 0.3s;
-    transition-duration: 0.3s;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
-.slideout {
-    display: none;
-    margin-left: -900px;
+.slideoutofview {
+    /* margin-left: -900px; */
     margin-top: 0;
-    -webkit-transition-duration: 0.3s;
-    -moz-transition-duration: 0.3s;
-    -o-transition-duration: 0.3s;
-    transition-duration: 0.3s;
+    -webkit-transition: all 0.2s ease-in-out;
+    -moz-transition: all 0.2s ease-in-out;
+    -o-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
 }
 .displaynone {
     display: none !important;
+}
+#refnav_col2, #togglenavbtn {
+border-right: var(--col2-border) solid auto!important;
+}
+#refnav_col2 {
+    box-shadow: inset -2px 0 0 0 var(--black);
+    z-index:9;
+}
+#refnav_col2 > div {
+    box-shadow:  3px 0px 9px 0 var(--black);
+    /* position:absolute; */
+    position:relative;
+    height: 100%;
+    background-color: var(--buttons);
+}
+#refnav_col2 > .slideintoview.displaynone{
+    display: null!important;
 }
 .displayshow {
     display: block !important;
@@ -961,31 +1479,95 @@ span.vmultiple.noted code #verse_notes_button {
 #mobilebuttons {
     display: none;
 }
+/* TOP-BAR TOGGLE BUTTON */
+#topbartogglebtn:hover {
+    background: var(--ref-img);
+    border: 1px solid var(--grey);
+}
+#topbartogglebtn {
+    position: absolute;
+    /* top: calc(100% + 0.2em); */
+    top: 99%;
+    right: 0.5em;
+    right: 0.85em;
+    width: 2.95rem;
+    height: 2.15rem;
+    background: var(--ref-img);
+    border-radius: 0 0 0.15em 0.15em;
+    box-shadow: 2.75px 2.75px 0 0.05em black;
+    width: calc(var(--width-sidebuttons) * 1.15);
+    height: calc(var(--width-sidebuttons) * 0.8);
+    border-radius: 1px;
+    padding: 0;
+}
+#topbartogglebtn span {
+    position: relative;
+    width: 0.65rem;
+    height: 1.6rem;
+    background-color: var(--black);
+    display: inline-block;
+    transition: all 0.2s ease;
+    /* width: calc(var(--fontsize-refnsearch) * 0.65);
+    height: calc(var(--fontsize-refnsearch) * 2.5); */
+    width: calc(var(--width-sidebuttons) * 0.15);
+    height: calc(var(--width-sidebuttons) * 0.65);
+    border: none;
+}
+#topbartogglebtn:hover span {
+    background-color: var(--white);
+}
+#topbartogglebtn:active span {
+    background-color: var(--black);
+}
+#topbartogglebtn.active_button span:first-of-type {
+    transform: rotate(135deg);
+}
+#topbartogglebtn span:first-of-type {
+    left: -0.2em;
+    transform: rotate(45deg);
+}
+#topbartogglebtn.active_button span:last-of-type {
+    transform: rotate(45deg);
+}
+#topbartogglebtn span:last-of-type {
+    right: -0.2em;
+    transform: rotate(135deg);
+}
 /* TOP-HORIZONTAL BAR */
 #top_horizontal_bar{
+    position: relative;
     grid-column-start: 1;
-    grid-column-end: 3;
+    grid-column-end: 4;
     grid-row-start: 1;
     grid-row-end: 2;
     border-bottom: 2px solid var(--grey);
     display: flex;
     flex-wrap: wrap;
+    z-index: 10;
 }
 #top_horizontal_bar_buttons{
     background: var(--ref-img);
     border-bottom: 2px solid #70707072;
     display: flex;
-    /* flex-wrap: wrap; */
-    /* width: calc(100vw - 5.5px); */
-    /* overflow-y: hidden; */
+    z-index: 1;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 /* #ref_search_versions_holder > div input:not([type=checkbox]) {
     width: 100px;
-} */
+}*/
 #top_horizontal_bar_buttons>button {
     font-size:var(--width-mainbutton);
     padding: 0;
-}    
+}
+#top_horizontal_bar #ref_search_versions_holder, #top_horizontal_bar #titlebarsearchparameters > *{
+    border-bottom: none!important;
+}
+#top_horizontal_bar #titlebarsearchparameters {
+    border-top: none!important;
+}
 
 /* REF & SEARCH */
 #ref_search_versions_holder {
@@ -993,31 +1575,31 @@ span.vmultiple.noted code #verse_notes_button {
     flex-wrap: wrap;
 }
 /* #refdiv {background-color: yellow;}
-#searchdiv {background-color: orange;}
-#bibleversions_btns {background-color: greenyellow;} */
+#bibleversions_btns {background-color: greenyellow;}*/
+#searchdiv {border: var(--buttons-border);}
+#searchdiv * {
+    border-top: none;
+    border-bottom: none;
+}
 #refdiv,#searchdiv,#bibleversions_btns {
     display: flex;
-    /* flex: 1 0 50%; */
-    /* display: inline-flex; */
 }
-#refdiv input,
-#searchdiv input{
+#refdiv input {
     width: 100%;
     font-size: var(--fontsize-refnsearch);
     flex-grow: 1;
+    padding-left: 0.5em;
 }
 #refdiv input{
     font-size: calc(var(--fontsize-refnsearch)*1.5);
 }
-#refdiv button, #searchdiv button, #togglenavbtn {
+#refdiv button, #searchdiv button, #forwordsearch_fixed {
     display: flex;
     align-items: center;
     padding: 2px;
     min-width: calc(var(--fontsize-refnsearch) * 2.5);
     min-height: calc(var(--fontsize-refnsearch) * 2);
     font-size: calc(var(--fontsize-refnsearch) * 2);
-    /* width:3em; */
-    /* height:3em; */
 }
 
 /* REFERENCE */
@@ -1030,12 +1612,12 @@ span.vmultiple.noted code #verse_notes_button {
     font-weight:bolder;
     font-size: 40px;
     flex-grow: 1;
-}   
+}
 
 /* SEARCH */
-#wordsearch {
-    background-color: var(--buttons);
-    border: var(--buttons-border);
+#wordsearch{
+    background-color: var(--buttons)!important;
+    border: var(--buttons-border)!important;
 }
 #wordsearch::-webkit-input-placeholder,
 #reference::-webkit-input-placeholder,#wordsearch:-moz-placeholder,
@@ -1062,23 +1644,31 @@ span.vmultiple.noted code #verse_notes_button {
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight:bold;
-    font-size: calc(var(--fontsize-refnsearch) * 0.9);
+    font-size: var(--fontsize-versionsbuttons);
+    border-right: 1px solid var(--grey);
+}
+#bibleversions_btns button:first-child {
+    border-left: 1px solid var(--grey);
 }
 
 /* SEARCH PARAMETERS */
 #titlebarsearchparameters {
     font-size: 12px;
+    margin-top: 0;
+    transition-duration: 0.3s;
 }
 #titlebarsearchparameters > *{
-    font-size: 1.75em;
+    font-size: 1.2em;
 }
 
 /* AVAILABLE NOTES */
 #bibleapp_available_notes{
     max-width: 250px;
     overflow-y: auto;
+    overflow-x: hidden;
     cursor: pointer;
     background: white;
+    height: 100%;
 }
 #bibleapp_available_notes em {
     display: block;
@@ -1087,6 +1677,7 @@ span.vmultiple.noted code #verse_notes_button {
     background: var(--grey);
     color: var(--white);
     font-weight: bold;
+    font-size: var(--fontsize-main);
 }
 #bibleapp_available_notes code {
     box-sizing: border-box;
@@ -1110,28 +1701,711 @@ span.vmultiple.noted code #verse_notes_button {
 #bibleapp_available_notes b {
     font-size: 1.2em;
 }
-#bibleapp_available_notes details summary {
+#bibleapp_available_notes details > summary {
     color: var(--black);
     background: var(--whitesmoke);
     font-weight: bold;
     display:list-item;
     list-style: inside disclosure-closed;
+    margin-right: 0;
+    margin-left: 0;
 }
-#bibleapp_available_notes details[open] summary {
+#bibleapp_available_notes details[open] > summary {
     list-style: inside disclosure-open;
 }
 /* #bibleapp_available_notes details:hover {
     background: var(--verse-hover);
-} */
-#bibleapp_available_notes details:hover summary {
+}*/
+#bibleapp_available_notes details:hover > summary {
     background: var(--selection);
 }
 #togglenavbtn {
     font-size: calc(var(--fontsize-refnsearch) * 2.3)!important;
     font-weight: 400;
+    /* min-width: calc(45px + var(--col2-border))!important; */
+    min-width: 45px;
+    width: var(--width-sidebuttons)!important;
 }
 #togglenavbtn img {
     width: calc(var(--fontsize-refnsearch) * 2)!important;
     max-width: 60.5px!important;
 }
 div>br:first-child{display: none;}
+
+#btnAdd {
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    background-color: #333;
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+}
+button:has(.checkboxreplacement){
+    position: relative;
+    padding-left: 2em;
+}
+button .checkboxreplacement:has(input[type="checkbox"]) input[type="checkbox"] {
+    display: block;
+    position: absolute;
+    left: -100vw;
+    visibility:none;
+}
+button .checkboxreplacement:has(input[type="checkbox"]) {
+    width: 1.5em;
+    height: 1.5em!important;
+    margin-right: 0.1em;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    flex-basis: 100%;
+    transform: scale(0.7);
+    position: absolute;
+    left: 0;
+    /* border: solid #d9d9d9; */
+}
+button .checkboxreplacement:has(input[type="checkbox"]):before {
+    content: "";
+    background: var(--img-cancel) center no-repeat;
+    display: flex;
+    width:100%!important;
+    height:100%!important;
+}
+button:hover .checkboxreplacement:has(input[type="checkbox"]):before {
+    background-color: #ccc;
+}
+button .checkboxreplacement:has(input[type="checkbox"]:checked):before {
+    background: var(--img-chkbox) center no-repeat;
+    background-color: var(--chpt);
+}
+
+/* body:has(#top_horizontal_bar_buttons.slideup) #sidemenubtn_rightbottom {
+    display: block;
+}*/
+input:focus {
+    outline: none;
+}
+
+#strongsdefinitionwindow {
+    display: flex;
+    flex-direction: column;
+}
+#strongsnum_inputholder {
+    display: flex;
+    align-items: stretch;
+}
+#strongsnum_inputholder #strongsnum_input {
+    width: 100%;
+    height: auto;
+    border-bottom-left-radius: 8px;
+    border-top-left-radius: 8px;
+    border: none;
+    box-shadow: inset 0px 0px 0px 0.5px var(--grey);
+}
+#strongsnum_inputholder #strongsnum_srchbtn {
+    width: 50px;
+    display: flex;
+    align-items: stretch;
+    border-bottom-right-radius: 8px;
+    border-top-right-radius: 8px;
+}
+#strongsnum_inputholder #strongsnum_srchbtn img {
+    transform: scale(0.6);
+}
+#strongsdefinitionwindow #strongsdefinition_text {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.crfnnote_btns {
+    position: relative;
+    display: flex;
+    background: var(--ref-img);
+    box-shadow: 0 2px 4px var(--black);
+    z-index: 3;
+    position: relative;
+}
+
+.crfnnote_btns::before{
+    display: block;
+    content: '';
+    background-color: var(--verse-higlight);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: -1;
+}
+#singleverse_compare_menu {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* DARKMODE SECTION *//* @media (prefers-color-scheme: dark) */
+.darkmode {
+    --verse-hover: transparent;
+    --ref-img:#202124;
+    --ref-img:#25262c;
+    --ref-img:#121212;
+    --whitesmoke:#202124;
+    --whitesmoke:#25262c;
+    --whitesmoke:#121212;
+    --vmultiple-hover: rgb(0, 13, 13);
+    --vhlt: rgb(0, 21, 21);
+    --vhlt2: rgb(0, 39, 39);
+    --selection: rgba(0, 255, 0, 0.6);
+    --selection: rgb(2 20 7);
+    --black: white;
+    --grey: rgb(22, 29, 24);
+    --searchedword-hlt: orange;
+    --whitish_noteContextMenu: rgb(18, 18, 18);
+    --versenote-contextmenu: rgb(18, 18, 18);
+    --verse-higlight:rgb(18, 18, 18);
+    --chpt:rgb(0, 25, 26);
+    --chpt:rgb(53, 42, 17);
+    --chpt2:rgb(0, 0, 0);
+    --vhlt3:rgb(10, 9, 12);
+    --vhlt3:rgb(8,4,0);
+    --buttons:rgb(0, 12, 12);
+    --buttons-txtcolor:rgb(245, 255, 251);
+    --buttons-txtcolor:#e8e6e3;
+    --buttons-txtcolor:#ffffff;
+    --darkmode-border:rgb(0, 78, 78);
+    --darkmode-border:#807e5880;
+    --darkmode-border-2:rgba(0, 132, 132, 0.779);
+    --darkmode-border-2:#62776d;
+    --darkmode-bg1color: #212121;
+    --img-cancel:url(images/cancel-svgrepo-com-DarkMode.svg);
+    --img-chkbox:url(images/check-box-svgrepo-com-DarkMode.svg);
+    --darkslategray:darkslategray;
+    --darkslategray:rgb(107, 84, 0);
+    --crossrefbackground:#8d6500;
+    --crossrefbackground:rgb(8,4,0);
+}
+.darkmode button, .darkmode input {
+    background-color: var(--vhlt);
+    background-color: var(--chpt2);
+    color: var(--buttons-txtcolor)!important;
+}
+.darkmode #strongsdefinitionwindow summary>div:first-of-type, .darkmode summary>div:first-of-type {
+    background: url(images/white-arrow-up-svgrepo-com.svg) center no-repeat;
+    min-width: 1em;
+    height: 2em;
+    margin: 10px;
+}
+.darkmode #strongsdefinitionwindow details[open] > summary > div:first-of-type,
+.darkmode details[open] > summary > div:first-of-type {
+    background: url(images/white-arrow-down-svgrepo-com.svg) center no-repeat;
+}
+.darkmode #hidesearchparameters,
+.darkmode #showonlysearchinput,
+.darkmode .cmenu_closebtn,
+.darkmode .closebtn,
+.darkmode .note_closebtn,
+.darkmode #bibleapp_available_notes {
+    background-color: transparent!important;
+}
+.darkmode #searchparameters {
+    background: none;
+}
+.darkmode button+button {
+    border-left: none!important;
+}
+.darkmode #searchparameters button {
+    border-top: none!important;
+    border-bottom: none!important;
+}
+.darkmode #searchparameters * button:first-child {
+    border-left: none!important;
+}
+.darkmode #searchparameters * button:last-child {
+    border-right: none!important;
+}
+.darkmode button:hover .checkboxreplacement:has(input[type="checkbox"]):before {
+    background-color: transparent;
+    border: 1px solid white;
+    border-radius: 5px;
+}
+.darkmode button .checkboxreplacement:has(input[type="checkbox"]:checked):before {
+    background: var(--img-chkbox) center no-repeat;
+    background-color: var(--chpt);
+}
+.darkmode span[ref]:hover, .darkmode .strnum:hover {
+    box-shadow: inset 0 -1.5em 0px 0px rgba(255, 223, 117, 0.663),
+    0 5px 5px -2px var(--shadow-orange)!important;
+}
+.darkmode #fontchange, .darkmode #biblebooksgroup, .darkmode #fontsizes {
+    background-color: #000000;
+}
+.darkmode #refnav .bible_nav *:hover, .darkmode #refnav .tmp_hlt {
+    background-color: var(--ref-img);
+    box-shadow: 0px 3px 0px 0px var(--vhlt-border), 0px -3px 0px 0px var(--vhlt-border);
+}
+.darkmode ::selection {
+    background-color: purple;
+}
+.darkmode * {
+    color:var(--buttons-txtcolor)!important;
+    color:white!important;
+    color:rgb(255, 255, 243)!important;
+    border-color: var(--darkmode-border)!important;
+}
+.darkmode #topbartogglebtn,
+.darkmode #sidemenubtn_rightbottom {
+    transition: all 0.5s ease 0s;
+}
+.darkmode #sidemenubtn_rightbottom {
+    background-color: var(--darkmode-border-2);
+}
+.darkmode #topbartogglebtn span {
+    background-color: grey;
+}
+.darkmode #topbartogglebtn:hover span {
+    background-color: whitesmoke;
+}
+/* .darkmode .active_button, .darkmode #searchsettings.active_button {
+    background-color: burlywood!important;
+    color: #000!important;
+}*/
+.darkmode .active_button, .darkmode #searchsettings.active_button {
+    background-color: grey !important;
+    background-color: #3f5560 !important;
+    background-color: #3f6056 !important;
+    background-color: var(--chpt) !important;
+}
+.darkmode #refnav_col2, .darkmode #togglenavbtn {
+    border-right: var(--col2-border) solid var(--darkmode-border)!important;
+}
+.darkmode #context_menu .cmtitlebar::before {
+    box-shadow: inset 0px -0.15em 0px 0px var(--darkslategray);
+}
+.darkmode #context_menu {
+    border: 2px solid var(--darkslategray)!important;
+    box-shadow: inset 0px 23px 0px 0px var(--darkslategray);
+}
+.darkmode .strngsdefinition h5,
+.darkmode .strngsdefinition h6 {
+    background-color: var(--darkslategray);
+    border-bottom: 5px solid var(--darkslategray);
+}
+.darkmode #context_menu code button.cmenusrchbtn {
+    border: rgb(166, 166, 166)!important;
+    background-color: transparent;
+}
+/* SEARCH ICON WITH CSS DIV */
+.magnifying_glass {
+    /* font-size: 10em; */
+    display: inline-block;
+    width: 0.5em;
+    box-sizing: content-box;
+    height: 0.5em;
+    border: 0.1em solid black;
+    position: relative;
+    border-radius: 50%;
+    margin-bottom:0.15em;
+    box-shadow: inset -0.05em -0.09em 0em 0.2em #80808078!important;
+}
+.magnifying_glass:before {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    right: 0.25em;
+    bottom: -0.2em;
+    border-width: 1em;
+    background: black;
+    width: 0.45em;
+    height: 0.08em;
+    transform: rotate(-60deg);
+}
+.darkmode .magnifying_glass {
+    border: 0.1em solid white!important;
+    box-shadow: inset -0.05em -0.09em 0em 0.2em #8ebdf9e0!important;
+}
+.darkmode .magnifying_glass:before {
+    background: white;
+}
+.darkmode span[class^=v_]:hover,
+.darkmode span.vmultiple:hover {
+    background-color: var(--vmultiple-hover)!important;
+    background-color: transparent!important;
+}
+.verse_note td,
+.verse_note th {
+    vertical-align:top;
+    border: 1px solid grey;
+    padding-left: 0.5em;
+}
+
+/* VERSE GROUPS */
+.v_markers {
+    display:flex;
+    flex-wrap: wrap;
+    position: relative;
+    width: 100%;
+    background: var(--whitesmoke);
+    min-height: 1em;
+    /* overflow: visible; */
+    /* margin-bottom: 5px; */
+    padding-top: 5px;
+    padding-bottom: 5px;
+    box-shadow: inset 0px 1px 0px var(--black), inset 0px -1px 0px var(--black);
+}
+/* .vmultiple:hover .v_markers {
+    margin-bottom: 0px;
+    padding-bottom: 8px; 
+}
+.v_markers:hover {
+    z-index: 1;
+}*/
+
+button.add_vMarker {
+    font-size: 1;
+    box-shadow: inset 0px 1px 0px var(--black), inset 0px -1px 0px var(--black);
+}
+button.add_vMarker:not(:first-child) {
+    margin-left: 5px;
+}
+div.v_markerinputnbtn_holder {
+    position: relative;
+    display:flex;
+    /* z-index: -1; */
+}
+div.v_markers .vmarker:first-of-type,
+.markernote + .vmarker {
+    margin-left: 0.5em;
+}
+div.v_markers .vmarker {
+    position: relative;
+    font-style: italic;
+    cursor: pointer;
+}
+div.v_markers .vmarker:hover {
+    color: var(--brown);
+}
+
+div.v_markers .vmarker.hasnote {
+    /* background-color: rgba(255, 192, 203, 0.37); */
+    border-bottom: 3px dotted crimson;
+    color:crimson;
+}
+div.v_markers .vmarker.showingNote {
+    box-shadow: inset 0 1px var(--shadow-color), inset 0 -1px var(--shadow-color);
+    border-top-left-radius: 0.2em;
+    border-top-right-radius: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+    border-left: 1px solid;
+    border-right: 1px solid;
+}
+div.v_markers .vmarker.showingNote + .markernote{
+    position: relative;
+    border-radius: 0.2em;
+    margin-right: 0.5em;
+    margin-left: 0.5em;
+}
+/* div.v_markers .vmarker.hasnote:after {
+    content:"* ";
+    position: absolute;
+    font-size: 125%;
+    top: -0.2em;
+    left: -0.4em;
+    font-weight: bold;
+    color: red;
+}*/
+div.v_markerinputnbtn_holder button img {
+    width: 1em;
+}
+div.v_markers div#autocomplete_items {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    background-color: var(--whitesmoke);
+    width:calc(100% - 1.6em);
+    z-index: 99;
+}
+/* div.v_markers:not(:hover) div#autocomplete_items {
+    display: none;
+}*/
+/* div.v_markerinputnbtn_holder input:not(:focus) ~ div#autocomplete_items {
+    display: none;
+}*/
+#autocomplete_items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: 1px solid #d4d4d4;
+    color: black!important;
+}
+#autocomplete_items div:hover {
+    /*when hovering an item:*/
+    background-color: #e9e9e9;
+}
+.autocomplete_active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important;
+    color: #ffffff;
+}
+
+#vmarker_options_menu {
+    position: absolute;
+    background-color: var(--whitesmoke);
+    top: 100%;
+    width: 10em;
+    border: 2px solid var(--black)!important;
+    border-radius: 2.5px;
+    border-bottom-left-radius: 7.5px;
+    border-bottom-right-radius: 7.5px;
+    overflow: hidden;
+    box-shadow: -2px 1px 8px -2px var(--shadow-color),
+    2px 1px 8px -1px var(--shadow-color);
+    z-index: 2;
+}
+#vmarker_options_menu h4,
+#vmarker_options_menu h5,
+#vmarker_options_menu code {
+    display: block;
+    background-color: var(--brown);
+    color: white!important;
+    border-bottom: 2px solid var(--black)!important;
+    padding: 1px 0 1px 7.5px;
+    margin: 0px;
+    cursor: default;
+    font-weight: bold;
+    font-style: normal;
+    font-size: 0.75em;
+}
+#vmarker_options_menu code:hover {
+    color: var(--black);
+}
+#vmarker_options_menu .vmarker_options,
+#vmarker_options_menu button {
+    margin: 0px!important;
+    padding-left: 0.7em;
+    width: 100%;
+    border-bottom: 1px solid var(--grey);
+    justify-content:left;
+    font-size: 1em;
+    text-align: left;
+}
+#vmarker_options_menu .vmarker_options:not(:disabled):hover {
+    background-color: var(--span-hover);
+    cursor: pointer;
+    font-weight: normal;
+    box-shadow: 0.4em 0 1px 0 orange;
+}
+#vmarker_options_menu .vmarker_options:not(:disabled):active {
+    font-weight: bold;
+    box-shadow: inset 0.6em 0 1px 0 red;
+}
+.markernote {
+    display: block;
+    width: 100%;
+    border: 1px solid rosybrown;
+    padding: 5px;
+    background: var(--whitesmoke);
+    min-height: 1.5em;
+    margin-bottom: 0.2em;
+}
+.markernote textarea {
+    width: 100%;
+    min-height: 1.5em;
+}
+.markernote button {
+    min-height: 1em;
+}
+.markernote .markernotesavebtn {
+    border-bottom-left-radius: 0.2em;
+}
+.markernote .closebtn {
+    top: -1.1em;
+    right: 0.2em;
+}
+.markernotetext {
+    display: block;
+    width: 100%;
+    /* background-color: palegoldenrod!important; */
+    border-bottom: 2px solid rosybrown;
+}
+.markernote > p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.markernotetext > p {
+    min-height: 1em!important;
+    margin: 0;
+}
+.markernotetext > p:empty {
+    background-color: palegoldenrod;
+    padding:0;
+    border: 1px solid red;
+}
+.vm, #bibleapp_versemarkers button {
+    width: 100%;
+    min-height: 1.5em;
+    text-align: left;
+    border-radius: 0.15em!important;
+}
+.vm *, #bibleapp_versemarkers .checkboxreplacement {
+    pointer-events:none;
+}
+.vm div, #bibleapp_versemarkers button div {width: 100%;}
+.vm_btns, #autocomplete_buttons {
+    display: flex;
+}
+.vm_btns * {
+    border-radius: 0.15em!important;
+}
+.vm_btns .checkboxreplacement:has(:checked) {
+    border: 1px solid var(--black);
+}
+.darkmode .vm_btns:hover .checkboxreplacement {
+    background-color: #0b5913;
+}
+.darkmode .vm_btns:hover button,
+.darkmode .vm_btns:hover button div {
+    color: black!important;
+    font-weight: bold;
+    background-color: pink!important;
+}
+.vm_btns:hover button,
+.vm_btns:hover button div {
+    color: black!important;
+    font-weight: bold;
+    background-color: var(--chpt) !important;
+}
+.darkmode .vm_btns:hover .vmbtnprevious:before,
+.darkmode .vm_btns:hover .vmbtnnext:before {
+    background: url(images/arrow-up-svgrepo-com.svg) center no-repeat!important;
+}
+.vm_btns .vmbtnprevious,
+.vm_btns .vmbtnnext {
+    width: 25%!important;
+    font-weight: bold;
+}
+.darkmode .vm_btns .vmbtnprevious:hover,
+.darkmode .vm_btns .vmbtnnext:hover {
+    background-color: rgb(210, 185, 126) !important;
+}
+.vm_btns .vmbtnprevious:before,
+.vm_btns .vmbtnnext:before {
+    content:"";
+    width:80%;
+    height:80%;
+    background: url(images/arrow-up-svgrepo-com.svg) center no-repeat!important;
+}
+.darkmode .vm_btns .vmbtnprevious:before,
+.darkmode .vm_btns .vmbtnnext:before {
+    background: url(images/white-arrow-up-svgrepo-com.svg) center no-repeat!important;
+}
+.vm_btns .vmbtnprevious:before {
+    transform: rotate(-90deg);
+}
+.vm_btns .vmbtnnext:before {
+    transform: rotate(90deg);
+}
+.eng2grk_sup_btns input {
+    pointer-events: none;
+}
+/* BOTTOM LEFT NAV BUTTONS */
+
+#bottomleft_btns {
+    display: block;
+    margin-top: auto;
+    margin-bottom: 1em;
+    margin-left: auto;
+    margin-right: 0.75em;
+    grid-column-start: 2;
+    grid-row-start: 2;
+    opacity: 0.5;
+    z-index: 99;
+    /* position: fixed; */
+    /* bottom: 1em; */
+    /* right: 0.75em; */
+}
+#bottomleft_btns:hover {
+    opacity: 1;
+}
+.flex {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+#bottomleft_btns button {background: var(--chpt) !important;}
+body:not(.darkmode) #bottomleft_btns button, body:not(.darkmode) #topbartogglebtn {
+    background: #eaeaea6b;
+    border: 1px;
+    box-shadow: 2px 2px 5px 0 black;
+}
+#bottomleft_btns button, #topbartogglebtn {
+    width: var(--width-sidebuttons);
+    min-width: 45px;
+    height: var(--width-sidebuttons);
+    border: 1px solid #333333!important;
+    box-shadow: 2.75px 2.75px 0 0.05em black;
+    transition: all 0.5s;
+}
+#bottomleft_btns button:hover {
+    opacity: 1;
+    transition: all 0.5s;
+}
+#bottomleft_btns #gotochpt_prev {
+    border-top-left-radius: var(--btn-radius);
+    border-top-right-radius: var(--btn-radius);
+}
+#bottomleft_btns button:hover, #topbartogglebtn:hover {
+    background: brown !important;
+}
+#bottomleft_btns button:active, #topbartogglebtn:active {
+    background: pink !important;
+    border: 5px solid brown!important;
+    transform: scale(0.9) !important;
+}
+#bottomleft_btns #gotochpt_next{margin-top: 0.25em;}
+#bottomleft_btns #gotochpt_next,#topbartogglebtn {
+    border-bottom-left-radius: var(--btn-radius);
+    border-bottom-right-radius: var(--btn-radius);
+}
+#bottomleft_btns #gotochpt_next img {
+    transform: rotate(180deg);
+}
+#bottomleft_btns #sidemenubtn_rightbottom {
+    border-radius: 0.25em;
+    margin-top: 1em;
+}
+
+/* button:not(#refnav_col2 button):focus,  */
+#app_settings button:focus,
+#top_horizontal_bar_buttons button:focus,
+#bottomleft_btns button:focus,
+button#topbartogglebtn:focus {
+    transform: scale(1.1);
+}
+/* #app_settings button:not(#refnav_col2 button):not(#togglenavbtn):focus, */
+#app_settings button:focus,
+#top_horizontal_bar_buttons button:not(#togglenavbtn):focus,
+#bottomleft_btns button:focus,
+button#topbartogglebtn:focus {
+    background-color: peachpuff;
+    border-radius: 50px!important;
+}
+#bottomleft_btns:focus-within {
+    opacity: 1;
+}
+#bottomleft_btns:focus-within button:not(:focus){
+    opacity: 0.5;
+}
+#bottomleft_btns button:focus,
+button#topbartogglebtn:focus {
+    background-color: peachpuff!important;
+}
+#app_settings:focus-within{
+    overflow: visible!important;
+}
+.darkmode #app_settings button:focus,
+.darkmode #top_horizontal_bar_buttons button:focus,
+.darkmode #bottomleft_btns button:focus,
+.darkmode button#topbartogglebtn:focus,
+.darkmode #bottomleft_btns button:focus,
+.darkmode button#topbartogglebtn:focus {
+    background-color:brown!important;
+}
